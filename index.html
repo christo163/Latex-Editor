@@ -1,0 +1,2705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="dark light" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=STIX+Two+Text:wght@500;600&display=swap" rel="stylesheet" />
+<script>
+  try {
+    var t = localStorage.getItem('latexViewer:theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.dataset.theme = t;
+  } catch (e) { document.documentElement.dataset.theme = 'dark'; }
+</script>
+<title>MAJAЯ LaTeX Editor</title>
+<style>
+  :root, :root[data-theme="dark"] {
+    --bg: #0e1422; --panel: #151c2e; --panel-2: #1c2640; --border: #2b3858;
+    --text: #e7ebf6; --text-dim: #93a0c0;
+    --accent: #7aa2ff; --accent-hover: #9bb8ff; --accent-ink: #0b1330;
+    --ok: #47c79a; --err: #ff6b6e; --on-err: #1c0b0c; --warn: #f2d04b;
+    --editor-bg: #0b101c; --gutter: #56638a; --grid: rgba(122, 162, 255, 0.06);
+    --pdf-bg: #2c3142; --bib: #e0ae4a; --img: #5fcf9d;
+    --font-ui: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-serif: "STIX Two Text", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --font-mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    color-scheme: dark;
+    font-family: var(--font-ui);
+  }
+  :root[data-theme="light"] {
+    --bg: #f5f7fb; --panel: #ffffff; --panel-2: #eaeff8; --border: #cfd7e6;
+    --text: #18203a; --text-dim: #5a6685;
+    --accent: #2a56d6; --accent-hover: #1f44b0; --accent-ink: #ffffff;
+    --ok: #14825c; --err: #c6282d; --on-err: #ffffff; --warn: #b88a00;
+    --editor-bg: #fbfcff; --gutter: #9aa5c2; --grid: rgba(42, 86, 214, 0.08);
+    --pdf-bg: #d3d8e4; --bib: #a86a00; --img: #14825c;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-ui); }
+  #app { height: 100vh; }
+
+  /* ---------- shared controls ---------- */
+  select, button, input[type=file]::file-selector-button {
+    background: var(--panel-2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 6px 12px; font-size: 13px; cursor: pointer; font-family: inherit;
+  }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  button.primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
+  button.danger { background: var(--err); color: var(--on-err); border-color: var(--err); font-weight: 600; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+  input.txt, input.search {
+    background: var(--editor-bg); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 7px 10px; font-size: 13px; font-family: inherit; width: 100%;
+  }
+  label.check { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-dim); cursor: pointer; user-select: none; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-dim); flex-shrink: 0; }
+  .ok .dot { background: var(--ok); }
+  .err .dot { background: var(--err); }
+  .busy .dot { background: var(--warn); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  @media (prefers-reduced-motion: reduce) {
+    .busy .dot { animation: none; }
+    #logDrawer { transition: none !important; }
+  }
+
+  /* ---------- dashboard ---------- */
+  #dashboard { height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+  .dash-head {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 12px 28px; background: var(--panel); border-bottom: 1px solid var(--border);
+  }
+  .wordmark { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin: 0 16px 0 0; letter-spacing: 0.1px; }
+  .mirror-r { display: inline-block; transform: scaleX(-1); }
+  .dash-head .search-wrap { flex: 1 1 200px; max-width: 340px; }
+  .dash-head .spacer { flex: 1; }
+  #engineChip { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-dim); }
+  .dash-body {
+    flex: 1; overflow-y: auto; padding: 32px 28px 56px;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  .dash-inner { max-width: 1040px; margin: 0 auto; }
+  .dash-inner h2 { font-family: var(--font-serif); font-size: 19px; font-weight: 500; margin: 0 0 14px; color: var(--text); }
+
+  #continueStrip { margin-bottom: 36px; }
+  .strip {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 24px; align-items: center;
+    background: var(--panel); border: 1px solid var(--border); border-left: 4px solid var(--accent);
+    border-radius: 8px; padding: 18px 22px;
+  }
+  .strip .pname { font-family: var(--font-serif); font-size: 26px; font-weight: 600; }
+  .strip .pactions { grid-column: 1 / -1; }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+    display: flex; flex-direction: column; overflow: hidden; min-width: 0;
+  }
+  .card:hover { border-color: var(--accent); }
+  .peek { display: block; height: 118px; background: var(--editor-bg); border-bottom: 1px solid var(--border); text-decoration: none; overflow: hidden; }
+  .peek pre {
+    margin: 0; padding: 12px 14px; font-family: var(--font-mono); font-size: 11.5px; line-height: 1.55;
+    color: var(--text-dim); white-space: pre; overflow: hidden; height: 100%;
+    -webkit-mask-image: linear-gradient(#000 55%, transparent); mask-image: linear-gradient(#000 55%, transparent);
+  }
+  .card-body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .pname { color: var(--text); text-decoration: none; font-weight: 600; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+  .pname:hover { color: var(--accent); }
+  .cmeta { display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 12px; color: var(--text-dim); }
+  .pactions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .pactions button { padding: 3px 9px; font-size: 12px; background: transparent; }
+  .strip-open {
+    justify-self: end; background: var(--accent); color: var(--accent-ink); text-decoration: none;
+    font-weight: 600; font-size: 13px; padding: 7px 14px; border-radius: 6px;
+  }
+  .strip-open:hover { background: var(--accent-hover); }
+  .empty {
+    background: var(--panel); border: 1px dashed var(--border); border-radius: 10px;
+    padding: 44px 24px; text-align: center; color: var(--text-dim); line-height: 1.7; font-size: 14px; grid-column: 1 / -1;
+  }
+  .empty .serif { font-family: var(--font-serif); font-size: 20px; color: var(--text); display: block; margin-bottom: 4px; }
+  .empty button { margin-top: 12px; }
+  @media (max-width: 600px) { .strip { grid-template-columns: 1fr; } .strip-open { justify-self: start; } }
+
+  /* ---------- workspace ---------- */
+  #workspace { height: 100%; display: flex; flex-direction: column; }
+  .ws-head {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 8px 14px; background: var(--panel); border-bottom: 1px solid var(--border);
+  }
+  .ws-head .spacer { flex: 1; }
+  #projectName {
+    background: transparent; border: 1px solid transparent; color: var(--text);
+    font-family: var(--font-serif); font-size: 19px; font-weight: 600; padding: 3px 8px; border-radius: 6px;
+    width: 240px; max-width: 40vw;
+  }
+  #projectName:hover { border-color: var(--border); }
+  #projectName:focus { border-color: var(--accent); background: var(--editor-bg); outline: none; }
+  .ws-head .group { display: flex; align-items: center; gap: 8px; }
+  .ws-head .lbl { font-size: 12px; color: var(--text-dim); }
+
+  #status {
+    font-size: 12px; color: var(--text-dim); padding: 5px 16px;
+    background: var(--panel); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  #status .grow { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #status.err #statusText { color: var(--err); }
+  #compileTime { font-variant-numeric: tabular-nums; }
+  #logBtn { padding: 2px 10px; font-size: 12px; background: transparent; }
+  #logBtn.alert { border-color: var(--err); color: var(--err); }
+  #progressWrap { height: 3px; background: var(--panel); }
+  #progressBar { height: 100%; width: 0%; background: var(--accent); transition: width 0.2s ease; }
+
+  #mainArea { flex: 1; display: flex; min-height: 0; position: relative; }
+
+  /* sidebar */
+  #sidebar {
+    width: 244px; flex-shrink: 0; display: flex; flex-direction: column;
+    background: var(--panel); border-right: 1px solid var(--border); min-height: 0;
+  }
+  #sidebar.drop { outline: 2px dashed var(--accent); outline-offset: -4px; }
+  .side-tools { display: flex; gap: 6px; padding: 8px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .side-tools button { padding: 4px 9px; font-size: 12px; }
+  #tree { flex: 1; overflow-y: auto; padding: 6px 0; font-size: 13px; }
+  .trow {
+    display: flex; align-items: center; gap: 7px; padding: 4px 8px; cursor: pointer;
+    border-left: 3px solid transparent; user-select: none;
+  }
+  .trow:hover { background: var(--panel-2); }
+  .trow.active { background: var(--panel-2); border-left-color: var(--accent); }
+  .trow .caret { width: 10px; color: var(--text-dim); font-size: 10px; flex-shrink: 0; }
+  .ico-wrap { display: inline-flex; flex-shrink: 0; color: var(--text-dim); }
+  .ico-wrap.tex { color: var(--accent); }
+  .ico-wrap.bib { color: var(--bib); }
+  .ico-wrap.img { color: var(--img); }
+  .trow .tname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .trow .badge { font-size: 11px; color: var(--accent); }
+  .trow .tact { display: none; gap: 2px; }
+  .trow:hover .tact, .trow:focus-within .tact { display: flex; }
+  .tact button { padding: 0 6px; font-size: 12px; line-height: 20px; border: none; background: transparent; color: var(--text-dim); }
+  .tact button:hover:not(:disabled) { color: var(--text); background: var(--border); }
+  .side-hint { padding: 10px 12px; font-size: 11.5px; color: var(--text-dim); border-top: 1px solid var(--border); line-height: 1.5; }
+
+  /* editor + pdf */
+  #split { flex: 1; display: flex; min-width: 0; }
+  #editorPane { flex: 0 0 50%; min-width: 0; display: flex; flex-direction: column; }
+  #pdfPane { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
+  #splitter { width: 5px; cursor: col-resize; background: var(--border); flex-shrink: 0; touch-action: none; }
+  #splitter:hover, #splitter.drag { background: var(--accent); }
+
+  #tabBar { display: flex; align-items: center; background: var(--panel); border-bottom: 1px solid var(--border); }
+  #tabs { flex: 1; min-width: 0; display: flex; overflow-x: auto; min-height: 34px; }
+  #fwdBtn { margin: 0 8px; padding: 2px 10px; font-size: 12px; flex-shrink: 0; background: transparent; }
+  .line-flash { position: absolute; left: 0; right: 0; background: rgba(255, 214, 10, 0.32); border-left: 3px solid var(--warn); pointer-events: none; animation: bandfade 1.8s ease-out forwards; z-index: 2; }
+  .pdf-link { position: absolute; display: block; cursor: pointer; border-radius: 2px; }
+  .pdf-link:hover { background: rgba(122, 162, 255, 0.22); outline: 1px solid rgba(122, 162, 255, 0.7); }
+  .sync-band {
+    position: absolute; background: rgba(255, 214, 10, 0.32); border-radius: 3px; pointer-events: none;
+    animation: bandfade 1.8s ease-out forwards;
+  }
+  @keyframes bandfade { 0%, 55% { opacity: 1; } 100% { opacity: 0; } }
+  .tab {
+    display: flex; align-items: center; gap: 8px; padding: 7px 12px; font-size: 12.5px;
+    color: var(--text-dim); border-right: 1px solid var(--border); cursor: pointer; white-space: nowrap;
+  }
+  .tab.active { background: var(--editor-bg); color: var(--text); box-shadow: inset 0 -2px 0 var(--accent); }
+  .tab .x { padding: 0 4px; border-radius: 4px; color: var(--text-dim); }
+  .tab .x:hover { background: var(--border); color: var(--text); }
+
+  #editorWrap { flex: 1; display: flex; min-height: 0; background: var(--editor-bg); }
+  #gutter, #editor, #highlight { font-family: var(--font-mono); font-size: 13px; line-height: 1.65; margin: 0; }
+  #gutter {
+    padding: 14px 8px 40px; text-align: right; color: var(--gutter); overflow: hidden;
+    user-select: none; min-width: 42px; border-right: 1px solid var(--border);
+  }
+  #codeBox { position: relative; flex: 1; min-width: 0; }
+  #highlight, #editor {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    padding: 14px; border: none; outline: none; resize: none;
+    tab-size: 2; white-space: pre; overflow-wrap: normal; word-break: normal;
+  }
+  #highlight { overflow: hidden; pointer-events: none; color: var(--text); padding-bottom: 48px; background: var(--editor-bg); }
+  #editor { overflow: auto; background: transparent; color: transparent; caret-color: var(--text); }
+  #editor::selection { background: color-mix(in srgb, var(--accent) 38%, transparent); color: transparent; }
+  #binaryView, #noFile {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 12px; color: var(--text-dim); font-size: 13px; padding: 20px; text-align: center;
+    background: var(--editor-bg); overflow: auto;
+  }
+  #binaryView img { max-width: 100%; max-height: 70%; background: #fff; border-radius: 4px; }
+
+  #pdfFrame { flex: 1; border: none; background: var(--pdf-bg); }
+  #pdfPlaceholder {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    color: var(--text-dim); font-size: 13px; text-align: center; padding: 20px; background: var(--pdf-bg);
+  }
+
+  /* log drawer */
+  #logDrawer {
+    position: absolute; top: 0; right: 0; bottom: 0; width: min(480px, 92vw);
+    background: var(--panel); border-left: 1px solid var(--border);
+    display: flex; flex-direction: column; z-index: 20;
+    transform: translateX(100%); visibility: hidden;
+    transition: transform 0.18s ease, visibility 0s linear 0.18s;
+  }
+  #logDrawer.open { transform: none; visibility: visible; transition: transform 0.18s ease, visibility 0s; }
+  .drawer-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  .drawer-head h3 { margin: 0; font-family: var(--font-serif); font-size: 17px; font-weight: 600; }
+  .drawer-head button { padding: 3px 10px; font-size: 12px; }
+  #logText {
+    margin: 0; padding: 12px 14px; flex: 1; overflow: auto; background: var(--editor-bg);
+    font-family: var(--font-mono); font-size: 12px; line-height: 1.55;
+    white-space: pre-wrap; word-break: break-word; color: var(--text);
+  }
+
+  #logTabs { display: flex; gap: 6px; padding: 8px 14px; border-bottom: 1px solid var(--border); }
+  #logTabs button { padding: 3px 12px; font-size: 12px; background: transparent; }
+  #logTabs button.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  #problemList { flex: 1; overflow: auto; background: var(--editor-bg); }
+  .prob { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; padding: 10px 14px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 13px; line-height: 1.45; }
+  .prob:hover { background: var(--panel-2); }
+  .prob .sev { font-size: 10.5px; font-weight: 600; padding: 1px 8px; border-radius: 10px; align-self: start; text-transform: uppercase; letter-spacing: 0.3px; margin-top: 2px; }
+  .sev.error { background: var(--err); color: var(--on-err); }
+  .sev.warning { background: var(--warn); color: #241c00; }
+  .sev.box { background: var(--panel-2); color: var(--text-dim); border: 1px solid var(--border); }
+  .prob .pmsg { overflow-wrap: anywhere; }
+  .prob .ploc, .prob .pctx { grid-column: 2; font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim); }
+  .prob .pctx { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .prob-empty { padding: 24px 14px; color: var(--text-dim); font-size: 13px; line-height: 1.6; }
+  #logBtn.warnb { border-color: var(--warn); color: var(--warn); }
+  @media (max-width: 860px) {
+    #mainArea { flex-direction: column; }
+    #sidebar { width: 100%; max-height: 30vh; border-right: none; border-bottom: 1px solid var(--border); }
+    #split { flex-direction: column; }
+    #editorPane { flex: 1 1 50% !important; }
+    #splitter { display: none; }
+  }
+
+  /* ---------- dialogs ---------- */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(6, 9, 18, 0.62);
+    display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px;
+  }
+  .dialog {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    padding: 22px; width: 100%; max-width: 450px; max-height: 90vh; overflow-y: auto; color: var(--text);
+  }
+  .dialog h3 { margin: 0 0 8px; font-family: var(--font-serif); font-size: 20px; font-weight: 600; }
+  .dialog p { margin: 0 0 12px; color: var(--text-dim); font-size: 13px; line-height: 1.5; }
+  .dialog .field { display: block; margin-bottom: 12px; }
+  .dialog .field > span { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 4px; }
+  .opts { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .opt { display: flex; gap: 10px; padding: 9px 11px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; align-items: flex-start; }
+  .opt:has(input:checked) { border-color: var(--accent); background: var(--panel-2); }
+  .opt b { font-size: 13px; display: block; }
+  .opt small { color: var(--text-dim); font-size: 12px; }
+  .dlg-err { color: var(--err); font-size: 12px; min-height: 16px; margin-bottom: 8px; }
+  .dlg-btns { display: flex; justify-content: flex-end; gap: 8px; }
+
+  #setupNotice {
+    padding: 24px 28px; max-width: 680px; margin: 0 auto 28px; text-align: left;
+    background: var(--panel); border: 1px solid var(--border); border-left: 4px solid var(--err); border-radius: 8px;
+    line-height: 1.6; font-size: 14px;
+  }
+  #setupNotice h2 { margin-top: 0; }
+  #setupNotice code { background: var(--editor-bg); padding: 2px 6px; border-radius: 4px; font-size: 13px; font-family: var(--font-mono); }
+  #setupNotice pre { background: var(--editor-bg); padding: 12px; border-radius: 6px; overflow-x: auto; font-family: var(--font-mono); }
+
+  /* syntax colours */
+  :root, :root[data-theme="dark"] {
+    --hl-cmd: #7aa2ff; --hl-comment: #6f7fa6; --hl-math: #e0ae4a; --hl-mathcmd: #f0c674;
+    --hl-env: #c792ea; --hl-brace: #8c9bc4; --hl-special: #ff8f8f;
+  }
+  :root[data-theme="light"] {
+    --hl-cmd: #2a56d6; --hl-comment: #7a8399; --hl-math: #a86a00; --hl-mathcmd: #8a5500;
+    --hl-env: #7b3fb3; --hl-brace: #6a7596; --hl-special: #c6282d;
+  }
+  .t-k { color: var(--hl-cmd); }
+  .t-c { color: var(--hl-comment); font-style: italic; }
+  .t-m { color: var(--hl-math); }
+  .t-mk { color: var(--hl-mathcmd); }
+  .t-e { color: var(--hl-env); }
+  .t-b { color: var(--hl-brace); }
+  .t-s { color: var(--hl-special); }
+
+  /* PDF viewer */
+  #pdfBar {
+    display: flex; align-items: center; gap: 6px; padding: 5px 10px; min-height: 34px;
+    background: var(--panel); border-bottom: 1px solid var(--border); font-size: 12px; color: var(--text-dim);
+  }
+  #pdfBar button { padding: 2px 9px; font-size: 12px; }
+  #pdfBar .grow { flex: 1; }
+  #zoomLabel { min-width: 38px; text-align: center; font-variant-numeric: tabular-nums; }
+  #pdfScroll { flex: 1; min-height: 0; overflow: auto; background: var(--pdf-bg); position: relative; }
+  #pdfPages { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 14px; width: max-content; min-width: 100%; }
+  .pdf-page { position: relative; background: #fff; flex-shrink: 0; box-shadow: 0 0 0 1px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.3); }
+  .pdf-page canvas { display: block; }
+  .sync-marker {
+    position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px; border: 2px solid var(--err);
+    border-radius: 50%; pointer-events: none; animation: ping 0.9s ease-out forwards;
+  }
+  @keyframes ping { from { transform: scale(0.4); opacity: 1; } to { transform: scale(1.7); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .sync-marker { animation: none; } }
+  @media (max-width: 1150px) { #pdfHint { display: none; } }
+  #toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 60; max-width: 90vw;
+    background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 9px 16px; font-size: 13px;
+  }
+
+  /* cloud sync */
+  .sync-btn { display: inline-flex; align-items: center; gap: 7px; background: transparent; font-size: 12px; padding: 3px 10px; }
+  .sync-btn .sdot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-dim); flex-shrink: 0; }
+  .sync-btn.s-ok .sdot { background: var(--ok); }
+  .sync-btn.s-busy .sdot { background: var(--warn); animation: pulse 1s infinite; }
+  .sync-btn.s-err { border-color: var(--err); color: var(--err); }
+  .sync-btn.s-err .sdot { background: var(--err); }
+  @media (prefers-reduced-motion: reduce) { .sync-btn.s-busy .sdot { animation: none; } }
+  .dialog.wide { max-width: 620px; }
+  .dialog p { white-space: normal; }
+  .info { font-size: 13px; line-height: 1.6; color: var(--text-dim); }
+  .info ol { padding-left: 20px; margin: 0 0 12px; }
+  .info li { margin-bottom: 6px; }
+  .info code { background: var(--editor-bg); padding: 1px 5px; border-radius: 4px; font-family: var(--font-mono); font-size: 12px; color: var(--text); }
+  .info pre { background: var(--editor-bg); padding: 12px; border-radius: 6px; overflow-x: auto; font-family: var(--font-mono); font-size: 12px; color: var(--text); margin: 0 0 12px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ DASHBOARD ============ -->
+  <section id="dashboard">
+    <div class="dash-head">
+      <h1 class="wordmark" aria-label="MAJAR LaTeX Editor">MAJA<span class="mirror-r" aria-hidden="true">R</span> LaTeX Editor</h1>
+      <div class="search-wrap"><input class="search" id="search" type="search" placeholder="Search projects" aria-label="Search projects" /></div>
+      <div class="spacer"></div>
+      <div id="engineChip" class="busy"><span class="dot"></span><span id="engineChipText">Starting engine…</span></div>
+      <button class="sync-btn s-off" aria-label="Cloud sync"><span class="sdot"></span><span class="sync-label">Set up sync</span></button>
+      <button class="theme-btn" aria-label="Switch colour theme">Light theme</button>
+      <button id="importBtn">Upload project</button>
+      <button id="newProjectBtn" class="primary">New project</button>
+      <input type="file" id="importInput" accept=".zip,.tex,.bib,.sty,.cls,.png,.jpg,.jpeg,.pdf" multiple hidden />
+    </div>
+    <div class="dash-body">
+      <div class="dash-inner">
+        <div id="continueStrip" hidden></div>
+        <h2 id="dashCount">Projects</h2>
+        <div id="projectRows" class="cards"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ WORKSPACE ============ -->
+  <section id="workspace" hidden>
+    <header class="ws-head">
+      <button id="backBtn" title="Back to all projects">← Projects</button>
+      <input id="projectName" aria-label="Project name" spellcheck="false" />
+      <div class="group">
+        <span class="lbl">Engine</span>
+        <select id="engineSelect" title="Engine">
+          <option value="pdflatex">pdfLaTeX</option>
+          <option value="xelatex">XeLaTeX</option>
+          <option value="lualatex">LuaLaTeX</option>
+        </select>
+      </div>
+      <div class="group">
+        <span class="lbl">Main file</span>
+        <select id="mainSelect" title="Main document"></select>
+      </div>
+      <label class="check" title="Run BibTeX when the project has a .bib file"><input type="checkbox" id="optBibtex" /> BibTeX</label>
+      <label class="check" title="Run extra passes to resolve references, TOC and citations"><input type="checkbox" id="optRerun" /> Extra passes</label>
+      <div class="spacer"></div>
+      <button class="theme-btn" aria-label="Switch colour theme">Light theme</button>
+      <button id="downloadPdfBtn" disabled>Download PDF</button>
+      <button id="downloadZipBtn">Download .zip</button>
+      <label class="check"><input type="checkbox" id="autoCompile" checked /> Auto-compile</label>
+      <button id="compileBtn" class="primary" disabled title="Ctrl/Cmd + Enter">Compile</button>
+    </header>
+
+    <div id="status" class="busy"><span class="dot"></span><span id="statusText" class="grow">Starting engine…</span><span id="compileTime"></span><span id="saveState"></span><button class="sync-btn s-off" aria-label="Cloud sync"><span class="sdot"></span><span class="sync-label">Set up sync</span></button><button id="logBtn" aria-expanded="false" aria-controls="logDrawer">Log</button></div>
+    <div id="progressWrap"><div id="progressBar"></div></div>
+
+    <div id="mainArea">
+      <aside id="logDrawer" aria-label="Compilation log">
+        <div class="drawer-head"><h3>Compilation log</h3><button id="logClose">Close</button></div>
+        <div id="logTabs"><button id="tabProblems" class="on">Problems</button><button id="tabRaw">Raw log</button></div>
+        <div id="problemList"></div>
+        <pre id="logText" hidden></pre>
+      </aside>
+      <aside id="sidebar" aria-label="Project files">
+        <div class="side-tools">
+          <button id="newFileBtn" title="New file">New file</button>
+          <button id="newFolderBtn" title="New folder">New folder</button>
+          <button id="uploadBtn" title="Upload files into this project">Upload</button>
+          <input type="file" id="uploadInput" multiple hidden />
+        </div>
+        <div id="tree"></div>
+        <div class="side-hint">Drop files here to add them. Use ★ to choose the main .tex file.</div>
+      </aside>
+
+      <div id="split">
+        <div id="editorPane">
+          <div id="tabBar"><div id="tabs"></div><button id="fwdBtn" title="Scroll the PDF to the line your cursor is on (or Ctrl/Cmd + click in the editor)">Show in PDF</button></div>
+          <div id="editorWrap">
+            <pre id="gutter" aria-hidden="true"></pre>
+            <div id="codeBox">
+              <pre id="highlight" aria-hidden="true"></pre>
+              <textarea id="editor" spellcheck="false" wrap="off" aria-label="LaTeX source"></textarea>
+            </div>
+          </div>
+          <div id="binaryView" hidden></div>
+          <div id="noFile" hidden>Select a file from the sidebar to edit it.</div>
+        </div>
+        <div id="splitter" role="separator" aria-orientation="vertical" title="Drag to resize"></div>
+        <div id="pdfPane">
+          <div id="pdfBar" hidden>
+            <button id="zoomOut" aria-label="Zoom out">−</button>
+            <span id="zoomLabel"></span>
+            <button id="zoomIn" aria-label="Zoom in">+</button>
+            <button id="zoomFit">Fit width</button>
+            <span class="grow"></span>
+            <span id="pdfHint" title="SyncTeX">Double-click the PDF to jump to its source</span>
+            <span id="pageInfo"></span>
+          </div>
+          <div id="pdfPlaceholder">Compile to see the PDF here.</div>
+          <div id="pdfScroll" hidden><div id="pdfPages"></div></div>
+          <iframe id="pdfFrame" style="display:none" title="PDF preview"></iframe>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+</div>
+<div id="modalRoot"></div>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+
+<script type="module">
+// ---------------------------------------------------------------------------
+// LaTeX → PDF with multiple projects, compiled entirely client-side with
+// TeX Live in WebAssembly (texlyre-busytex — https://github.com/TeXlyre/texlyre-busytex).
+//
+// Projects (files, folders, settings) are stored in this browser's IndexedDB.
+// Nothing is uploaded anywhere. Use "Download .zip" to back a project up or
+// move it to another browser/device (or to Overleaf).
+//
+// SETUP (one-time, before this file works on your host) — unchanged:
+//   1. Node.js on your machine, then run:
+//        npx texlyre-busytex download-assets .
+//      This downloads the compiled WASM engines + TeX Live package data
+//      (large — tens to a few hundred MB) into ./busytex/.
+//   2. Deploy this HTML file AND the busytex folder together, SIDE BY SIDE
+//      at the same level (not one inside the other), to your static host.
+//      On Netlify drag the PARENT folder that contains both latex-viewer.html
+//      and busytex/ — Netlify uses the dragged folder's CONTENTS as site root.
+//   3. Open the page over http(s):// (not file://) — Web Workers require it.
+// ---------------------------------------------------------------------------
+
+const BUSYTEX_VERSION = '1.4.0';
+const BUSYTEX_BASE_PATH = '/busytex';
+const JSZIP_URL = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm';
+
+// ---- CLOUD SYNC (optional) ------------------------------------------------
+// Leave FIREBASE_CONFIG as null to run purely offline (projects stay in this browser).
+// To sync across devices, paste your Firebase web-app config here, e.g.
+//   const FIREBASE_CONFIG = { apiKey: '...', authDomain: '...firebaseapp.com', projectId: '...', appId: '...' };
+// and put your Google account email below. Click "Set up sync" in the app for the full checklist.
+const FIREBASE_CONFIG = null;
+const SYNC_ALLOWED_EMAIL = '';
+
+/* ============================== utilities ============================== */
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8));
+const fmtDate = (t) => new Date(t).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+const extOf = (p) => { const m = /\.([^./]+)$/.exec(p); return m ? m[1].toLowerCase() : ''; };
+const baseName = (p) => p.split('/').pop();
+const dirName = (p) => (p.includes('/') ? p.slice(0, p.lastIndexOf('/')) : '');
+const slug = (s) => (s || 'document').trim().replace(/[^\w.-]+/g, '_').replace(/^_+|_+$/g, '') || 'document';
+const ENGINE_LABEL = { pdflatex: 'pdfLaTeX', xelatex: 'XeLaTeX', lualatex: 'LuaLaTeX' };
+
+const TEXT_EXT = new Set(['tex', 'bib', 'sty', 'cls', 'bst', 'txt', 'md', 'cfg', 'def', 'bbx', 'cbx', 'lbx', 'dtx', 'ins',
+  'csv', 'tsv', 'tikz', 'ltx', 'latex', 'json', 'lco', 'clo', 'fd', 'mst', 'ist', 'xml', 'html', 'py', 'lua', 'bbl', 'ind']);
+const IMAGE_EXT = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml' };
+const SKIP_IMPORT = /\.(aux|log|out|toc|fls|fdb_latexmk|synctex\.gz|blg|lof|lot|nav|snm|vrb)$/i;
+const isTextPath = (p) => TEXT_EXT.has(extOf(p)) || !extOf(p);
+
+function downloadBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+/* ============================== IndexedDB ============================== */
+const dbPromise = new Promise((resolve, reject) => {
+  const req = indexedDB.open('latexViewer', 1);
+  req.onupgradeneeded = () => {
+    const db = req.result;
+    db.createObjectStore('projects', { keyPath: 'id' });
+    db.createObjectStore('pdfs', { keyPath: 'id' });
+  };
+  req.onsuccess = () => resolve(req.result);
+  req.onerror = () => reject(req.error);
+});
+function tx(store, mode, fn) {
+  return dbPromise.then((db) => new Promise((resolve, reject) => {
+    const t = db.transaction(store, mode);
+    const req = fn(t.objectStore(store));
+    t.oncomplete = () => resolve(req ? req.result : undefined);
+    t.onerror = () => reject(t.error);
+    t.onabort = () => reject(t.error);
+  }));
+}
+const dbAll = () => tx('projects', 'readonly', (s) => s.getAll());
+const dbGet = (id) => tx('projects', 'readonly', (s) => s.get(id));
+const dbPut = (p) => tx('projects', 'readwrite', (s) => s.put(p));
+const pdfGet = (id) => tx('pdfs', 'readonly', (s) => s.get(id));
+const pdfPut = (rec) => tx('pdfs', 'readwrite', (s) => s.put(rec));
+const dbDelete = (id) => Promise.all([
+  tx('projects', 'readwrite', (s) => s.delete(id)),
+  tx('pdfs', 'readwrite', (s) => s.delete(id)),
+]);
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+
+/* ============================== templates ============================== */
+const T = (c) => ({ t: 'text', c });
+
+const TEMPLATES = {
+  blank: {
+    label: 'Blank project', desc: 'A single main.tex with a short example.',
+    build: () => ({ files: { 'main.tex': T(String.raw`\documentclass{article}
+\usepackage{amsmath, amssymb}
+
+\begin{document}
+
+\section*{Example}
+
+Let $f : \mathbb{R} \to \mathbb{R}$ be continuous. Then for every
+$\varepsilon > 0$ there exists $\delta > 0$ such that
+
+\[
+  |x - x_0| < \delta \implies |f(x) - f(x_0)| < \varepsilon.
+\]
+
+\end{document}
+`) } }),
+  },
+  article: {
+    label: 'Article with sections and bibliography', desc: 'main.tex, sections/ folder and references.bib.',
+    build: () => ({
+      bibtex: true, rerun: true, folders: ['sections'],
+      files: {
+        'main.tex': T(String.raw`\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb}
+
+\title{Untitled Article}
+\author{Your Name}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\input{sections/introduction}
+\input{sections/results}
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
+`),
+        'sections/introduction.tex': T(String.raw`\section{Introduction}
+This is the introduction. We cite a classic text~\cite{rudin1976}.
+`),
+        'sections/results.tex': T(String.raw`\section{Results}
+\begin{equation}\label{eq:main}
+  \sum_{n=1}^{\infty} \frac{1}{n^2} = \frac{\pi^2}{6}.
+\end{equation}
+Equation~\eqref{eq:main} is the Basel problem.
+`),
+        'references.bib': T(String.raw`@book{rudin1976,
+  author    = {Rudin, Walter},
+  title     = {Principles of Mathematical Analysis},
+  edition   = {3},
+  publisher = {McGraw-Hill},
+  year      = {1976}
+}
+`),
+      },
+    }),
+  },
+  notes: {
+    label: 'Math notes (theorems and proofs)', desc: 'amsthm environments, ready for lecture notes or solutions.',
+    build: () => ({ files: { 'main.tex': T(String.raw`\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, amsthm}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+\title{Lecture Notes}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Basics}
+
+\begin{definition}
+A sequence $(a_n)$ is \emph{Cauchy} if for every $\varepsilon>0$ there is $N$
+with $|a_m-a_n|<\varepsilon$ for all $m,n\ge N$.
+\end{definition}
+
+\begin{theorem}
+Every convergent sequence in $\mathbb{R}$ is Cauchy.
+\end{theorem}
+
+\begin{proof}
+Suppose $a_n \to L$. Given $\varepsilon>0$ choose $N$ with
+$|a_n-L|<\varepsilon/2$ for $n\ge N$. Then for $m,n\ge N$,
+$|a_m-a_n|\le |a_m-L|+|L-a_n|<\varepsilon$.
+\end{proof}
+
+\end{document}
+`) } }),
+  },
+  beamer: {
+    label: 'Beamer presentation', desc: 'A short slide deck.',
+    build: () => ({ files: { 'main.tex': T(String.raw`\documentclass{beamer}
+\usetheme{default}
+\usepackage{amsmath, amssymb}
+
+\title{Presentation Title}
+\author{Your Name}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{First slide}
+  \begin{itemize}
+    \item A point worth making
+    \item A formula: $e^{i\pi}+1=0$
+  \end{itemize}
+\end{frame}
+
+\end{document}
+`) } }),
+  },
+};
+
+/* ============================== project model ============================== */
+function detectMain(files) {
+  if (files['main.tex'] && files['main.tex'].t === 'text') return 'main.tex';
+  const tex = Object.keys(files).filter((p) => extOf(p) === 'tex' && files[p].t === 'text');
+  return tex.find((p) => /\\documentclass/.test(files[p].c)) || tex[0] || null;
+}
+function makeProject(name, files, extra = {}) {
+  const now = Date.now();
+  const p = {
+    id: uid(), name, created: now, updated: now,
+    engine: 'pdflatex', bibtex: true, rerun: false,
+    folders: [], files, mainFile: null, ...extra,
+  };
+  p.mainFile = detectMain(files);
+  return p;
+}
+const hasBib = (p) => Object.keys(p.files).some((k) => extOf(k) === 'bib');
+
+/* ============================== dialogs ============================== */
+function openDialog({ title, message = '', fields = [], options = null, ok = 'OK', danger = false, validate = null }) {
+  return new Promise((resolve) => {
+    const root = $('modalRoot');
+    const fieldHtml = fields.map((f, i) =>
+      `<label class="field"><span>${esc(f.label)}</span><input class="txt" data-f="${i}" value="${esc(f.value || '')}" placeholder="${esc(f.placeholder || '')}" autocomplete="off" spellcheck="false"></label>`).join('');
+    const optHtml = options
+      ? `<div class="opts" role="radiogroup">${options.map((o, i) =>
+        `<label class="opt"><input type="radio" name="opt" value="${esc(o.value)}" ${i === 0 ? 'checked' : ''}><span><b>${esc(o.label)}</b><small>${esc(o.desc || '')}</small></span></label>`).join('')}</div>`
+      : '';
+    root.innerHTML = `<div class="overlay"><div class="dialog" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+      <h3>${esc(title)}</h3>${message ? `<p>${esc(message)}</p>` : ''}${fieldHtml}${optHtml}
+      <div class="dlg-err" id="dlgErr" role="alert"></div>
+      <div class="dlg-btns"><button id="dlgCancel">Cancel</button><button id="dlgOk" class="${danger ? 'danger' : 'primary'}">${esc(ok)}</button></div>
+    </div></div>`;
+    const inputs = [...root.querySelectorAll('input.txt')];
+    const close = (val) => { root.innerHTML = ''; document.removeEventListener('keydown', onKey, true); resolve(val); };
+    const submit = () => {
+      const values = inputs.map((i) => i.value.trim());
+      const opt = root.querySelector('input[name=opt]:checked');
+      const result = { values, value: values[0], option: opt ? opt.value : null };
+      const err = validate ? validate(result) : '';
+      if (err) { $('dlgErr').textContent = err; return; }
+      close(result);
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape') { e.preventDefault(); close(null); }
+      else if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') { e.preventDefault(); submit(); }
+    };
+    document.addEventListener('keydown', onKey, true);
+    $('dlgCancel').onclick = () => close(null);
+    $('dlgOk').onclick = submit;
+    root.querySelector('.overlay').addEventListener('mousedown', (e) => { if (e.target.classList.contains('overlay')) close(null); });
+    const first = inputs[0] || $('dlgOk');
+    first.focus();
+    if (first.select) first.select();
+  });
+}
+
+function normPath(raw) {
+  let p = String(raw || '').trim().replace(/\\/g, '/').replace(/^(\.\/)+/, '').replace(/^\/+/, '').replace(/\/{2,}/g, '/').replace(/\/$/, '');
+  return p;
+}
+function pathError(p) {
+  if (!p) return 'Enter a name.';
+  if (p.split('/').some((s) => s === '..' || s === '.' || s === '')) return 'Paths cannot contain "." or ".." segments.';
+  if (/[*?<>|:"]/.test(p)) return 'Names cannot contain * ? < > | : or quotes.';
+  return '';
+}
+const pathTaken = (p, ignore = null) =>
+  Object.keys(proj.files).some((k) => k !== ignore && (k === p || k.startsWith(p + '/') || p.startsWith(k + '/'))) ||
+  proj.folders.some((f) => f !== ignore && (f === p || f.startsWith(p + '/') || p.startsWith(f + '/')));
+
+/* ============================== engine ============================== */
+let runner = null;
+let engines = {};
+let engineState = { kind: 'busy', text: 'Starting engine…' };
+
+function setStatus(kind, text) {
+  $('status').className = kind;
+  $('statusText').textContent = text;
+}
+function setEngineState(kind, text) {
+  engineState = { kind, text };
+  $('engineChip').className = kind;
+  $('engineChipText').textContent = kind === 'ok' ? 'Engine ready' : text;
+  if (compiling) return;
+  setStatus(kind, text);
+}
+
+async function boot() {
+  try {
+    const mod = await import(`https://cdn.jsdelivr.net/npm/texlyre-busytex@${BUSYTEX_VERSION}/dist/index.js`);
+    const { BusyTexRunner, PdfLatex, XeLatex, LuaLatex } = mod;
+
+    runner = new BusyTexRunner({
+      busytexBasePath: BUSYTEX_BASE_PATH,
+      // Without this, the package resolver has nothing to match against —
+      // every \usepackage, even amsmath, fails to resolve.
+      preloadDataPackages: [`${BUSYTEX_BASE_PATH}/texlive-basic.js`],
+      catalogDataPackages: [
+        `${BUSYTEX_BASE_PATH}/texlive-basic.js`,
+        `${BUSYTEX_BASE_PATH}/texlive-recommended.js`,
+        `${BUSYTEX_BASE_PATH}/texlive-extra.js`,
+      ],
+      onDownloadProgress: (p) => {
+        if (cp.active) { cp.dl = p.percent || 0; return; }     // package download during a compile feeds the compile percentage
+        $('progressBar').style.width = `${p.percent || 0}%`;
+        if (p.percent < 100) setEngineState('busy', `Loading TeX Live packages… ${p.percent}%`);
+      },
+    });
+
+    if (typeof runner.reportDownloadProgress === 'function') {
+      const orig = runner.reportDownloadProgress.bind(runner);
+      runner.reportDownloadProgress = (m) => { try { cpMessage(m); } catch (e) { /* never break the engine */ } return orig(m); };
+    }
+    setEngineState('busy', 'Starting WebAssembly engine (first load can take a while)…');
+    await runner.initialize();
+
+    engines = {
+      pdflatex: new PdfLatex(runner),
+      xelatex: new XeLatex(runner),
+      lualatex: new LuaLatex(runner),
+    };
+    $('progressBar').style.width = '100%';
+    setEngineState('ok', 'Ready.');
+    if (proj) {
+      $('compileBtn').disabled = false;
+      if (!currentPdfBytes) compile();
+    }
+  } catch (err) {
+    console.error(err);
+    setEngineState('err', 'Engine failed to load — see setup notice.');
+    showSetupNotice(err);
+  }
+}
+
+function showSetupNotice(err) {
+  if ($('setupNotice')) return;
+  const notice = document.createElement('div');
+  notice.id = 'setupNotice';
+  notice.innerHTML = `
+    <h2>Engine assets not found</h2>
+    <p>This page compiles LaTeX to PDF entirely in your browser using
+    <code>texlyre-busytex</code>. It needs a folder of WebAssembly + TeX Live
+    data hosted alongside this file, at <code>${BUSYTEX_BASE_PATH}</code>.
+    Your projects are still available and editable; you just can't compile yet.</p>
+    <p>One-time setup, on your machine:</p>
+    <pre>npx texlyre-busytex download-assets .</pre>
+    <p>Then deploy this HTML file together with the resulting <code>busytex/</code>
+    folder to your static host (same directory), and open the page over
+    <code>http://</code> or <code>https://</code> — not as a local
+    <code>file://</code> path, since Web Workers require a server origin.</p>
+    <p style="color:#9a9ab0; font-size: 12px;">Error detail: ${esc(err && err.message ? err.message : err)}</p>`;
+  document.querySelector('.dash-body').prepend(notice);
+}
+
+/* ============================== dashboard ============================== */
+function peekOf(p) {
+  const f = p.files[p.mainFile];
+  if (!f || f.t !== 'text') return '';
+  let src = f.c;
+  const i = src.indexOf('\\begin{document}');
+  if (i >= 0) src = src.slice(i + 16);
+  return src.split('\n').map((l) => l.trimEnd()).filter((l) => l.trim() && !l.trim().startsWith('%'))
+    .slice(0, 7).map((l) => (l.length > 42 ? l.slice(0, 42) + '…' : l)).join('\n');
+}
+const metaHtml = (p) => {
+  const n = Object.keys(p.files).length;
+  return `<div class="cmeta"><span>${esc(fmtDate(p.updated))}</span><span>${esc(ENGINE_LABEL[p.engine] || p.engine)}</span><span>${n} file${n === 1 ? '' : 's'}</span></div>`;
+};
+const actionsHtml = `<div class="pactions"><button data-act="rename">Rename</button><button data-act="duplicate">Duplicate</button><button data-act="zip">Download</button><button data-act="delete">Delete</button></div>`;
+
+async function renderDashboard() {
+  const all = (await dbAll()).sort((a, b) => b.updated - a.updated);
+  const q = $('search').value.trim().toLowerCase();
+  const showStrip = !q && all.length > 0;
+  const rest = showStrip ? all.slice(1) : all.filter((p) => !q || p.name.toLowerCase().includes(q));
+
+  const strip = $('continueStrip');
+  strip.hidden = !showStrip;
+  if (showStrip) {
+    const p = all[0];
+    strip.innerHTML = `<h2>Continue where you left off</h2>
+      <article class="strip" data-id="${esc(p.id)}">
+        <div><a class="pname" href="#/p/${esc(p.id)}">${esc(p.name)}</a>${metaHtml(p)}</div>
+        <a class="strip-open" href="#/p/${esc(p.id)}">Open project</a>
+        ${actionsHtml}
+      </article>`;
+  }
+
+  const heading = $('dashCount');
+  if (showStrip) { heading.textContent = 'Other projects'; heading.hidden = rest.length === 0; }
+  else { heading.hidden = false; heading.textContent = all.length ? `${rest.length} matching project${rest.length === 1 ? '' : 's'}` : 'Projects'; }
+
+  if (!all.length) {
+    $('projectRows').innerHTML = `<div class="empty"><span class="serif">No projects yet</span>Start from a template, or upload a .zip or .tex file.<br><button class="primary" id="emptyNew">New project</button></div>`;
+  } else if (!rest.length && !showStrip) {
+    $('projectRows').innerHTML = `<div class="empty"><span class="serif">Nothing matches that search</span>Try a different word from the project name.</div>`;
+  } else {
+    $('projectRows').innerHTML = rest.map((p) => `<article class="card" data-id="${esc(p.id)}">
+      <a class="peek" href="#/p/${esc(p.id)}" tabindex="-1" aria-hidden="true"><pre>${esc(peekOf(p))}</pre></a>
+      <div class="card-body">
+        <a class="pname" href="#/p/${esc(p.id)}" title="${esc(p.name)}">${esc(p.name)}</a>
+        ${metaHtml(p)}${actionsHtml}
+      </div></article>`).join('');
+  }
+  const en = $('emptyNew'); if (en) en.onclick = createProjectFlow;
+}
+
+async function onProjectAction(e) {
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  const id = btn.closest('[data-id]').dataset.id;
+  const p = await dbGet(id);
+  if (!p) return renderDashboard();
+  if (btn.dataset.act === 'rename') {
+    const r = await openDialog({ title: 'Rename project', fields: [{ label: 'Project name', value: p.name }], ok: 'Rename', validate: (r) => (r.value ? '' : 'Enter a name.') });
+    if (r) { p.name = r.value; p.updated = Date.now(); await dbPut(p); scheduleSyncAll(); renderDashboard(); }
+  } else if (btn.dataset.act === 'duplicate') {
+    const copy = structuredClone(p);
+    copy.id = uid(); copy.name = `${p.name} (copy)`; copy.created = copy.updated = Date.now();
+    delete copy.sync;
+    await dbPut(copy);
+    const pdf = await pdfGet(id);
+    if (pdf) await pdfPut({ ...pdf, id: copy.id });
+    scheduleSyncAll();
+    renderDashboard();
+  } else if (btn.dataset.act === 'zip') {
+    exportZip(p);
+  } else if (btn.dataset.act === 'delete') {
+    const r = await openDialog({ title: 'Delete project?', message: `"${p.name}" and all of its files will be permanently deleted from this browser. Download a .zip first if you may need it.`, ok: 'Delete project', danger: true });
+    if (r) { await dbDelete(id); queueRemoteDelete(id); renderDashboard(); }
+  }
+}
+$('projectRows').addEventListener('click', onProjectAction);
+$('continueStrip').addEventListener('click', onProjectAction);
+$('search').addEventListener('input', renderDashboard);
+$('newProjectBtn').addEventListener('click', createProjectFlow);
+$('importBtn').addEventListener('click', () => $('importInput').click());
+
+async function createProjectFlow() {
+  const r = await openDialog({
+    title: 'New project',
+    fields: [{ label: 'Project name', value: 'Untitled project' }],
+    options: Object.entries(TEMPLATES).map(([value, t]) => ({ value, label: t.label, desc: t.desc })),
+    ok: 'Create',
+    validate: (r) => (r.value ? '' : 'Enter a project name.'),
+  });
+  if (!r) return;
+  const t = TEMPLATES[r.option].build();
+  const p = makeProject(r.value, t.files, { bibtex: t.bibtex ?? true, rerun: t.rerun ?? false, folders: t.folders || [] });
+  await dbPut(p);
+  location.hash = `#/p/${p.id}`;
+}
+
+$('importInput').addEventListener('change', async () => {
+  const files = [...$('importInput').files];
+  $('importInput').value = '';
+  if (!files.length) return;
+  try {
+    let p;
+    const zipFile = files.length === 1 && extOf(files[0].name) === 'zip' ? files[0] : null;
+    if (zipFile) {
+      p = makeProject(zipFile.name.replace(/\.zip$/i, ''), await readZipFiles(zipFile));
+    } else {
+      const map = {};
+      for (const f of files) map[f.name] = await readFileEntry(f);
+      p = makeProject(files[0].name.replace(/\.[^.]+$/, ''), map);
+    }
+    if (!Object.keys(p.files).length) throw new Error('No files found to import.');
+    p.bibtex = true;
+    await dbPut(p);
+    location.hash = `#/p/${p.id}`;
+  } catch (err) {
+    console.error(err);
+    openDialog({ title: 'Upload failed', message: String(err.message || err), ok: 'OK' });
+  }
+});
+
+async function readFileEntry(file) {
+  return isTextPath(file.name) ? { t: 'text', c: await file.text() } : { t: 'bin', c: new Uint8Array(await file.arrayBuffer()) };
+}
+
+/* ============================== zip import/export ============================== */
+let zipLib = null;
+async function loadZip() {
+  if (!zipLib) zipLib = (await import(JSZIP_URL)).default;
+  return zipLib;
+}
+async function exportZip(p) {
+  try {
+    const JSZip = await loadZip();
+    const z = new JSZip();
+    for (const f of p.folders) z.folder(f);
+    for (const [path, f] of Object.entries(p.files)) z.file(path, f.c);
+    downloadBlob(await z.generateAsync({ type: 'blob' }), `${slug(p.name)}.zip`);
+  } catch (err) {
+    console.error(err);
+    openDialog({ title: 'Could not create .zip', message: 'The zip library failed to load from the CDN. Check your connection and try again.', ok: 'OK' });
+  }
+}
+async function readZipFiles(file) {
+  const JSZip = await loadZip();
+  const zip = await JSZip.loadAsync(await file.arrayBuffer());
+  const entries = Object.values(zip.files).filter((e) => !e.dir && !e.name.startsWith('__MACOSX/') && !/(^|\/)\.DS_Store$/.test(e.name) && !SKIP_IMPORT.test(e.name));
+  // strip a single shared top-level folder (common when zipping a directory)
+  const tops = new Set(entries.map((e) => e.name.split('/')[0]));
+  const strip = tops.size === 1 && entries.every((e) => e.name.includes('/')) ? [...tops][0] + '/' : '';
+  const files = {};
+  for (const e of entries) {
+    const path = e.name.slice(strip.length);
+    if (!path) continue;
+    files[path] = isTextPath(path) ? { t: 'text', c: await e.async('string') } : { t: 'bin', c: await e.async('uint8array') };
+  }
+  return files;
+}
+
+/* ============================== workspace state ============================== */
+let proj = null;
+let openTabs = [];
+let active = null;
+let collapsed = new Set();
+let saveTimer = null;
+let dirty = false;
+let debounceTimer = null;
+let compiling = false;
+let queuedRecompile = false;
+let currentPdfUrl = null;
+let currentPdfBytes = null;
+let binaryUrl = null;
+
+const editor = $('editor');
+
+/* ---- saving ---- */
+function setSaveState(s) { $('saveState').textContent = s; }
+function markDirty() {
+  dirty = true; setSaveState('Unsaved changes…');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveNow, 600);
+}
+async function saveNow() {
+  clearTimeout(saveTimer);
+  if (!proj || !dirty) return;
+  dirty = false;
+  proj.updated = Date.now();
+  const sid = proj.id;
+  try { await dbPut(proj); setSaveState('Saved'); scheduleSyncOne(sid); }
+  catch (err) { console.error(err); dirty = true; setSaveState('Save failed — storage full?'); }
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) saveNow(); });
+window.addEventListener('pagehide', saveNow);
+
+/* ---- opening / closing ---- */
+async function openProject(id) {
+  const p = await dbGet(id);
+  if (!p) { location.hash = ''; return; }
+  proj = p;
+  openTabs = []; active = null; collapsed = new Set(); dirty = false;
+  $('dashboard').hidden = true; $('workspace').hidden = false;
+  document.title = `${p.name} — MAJAЯ LaTeX Editor`;
+  $('projectName').value = p.name;
+  $('engineSelect').value = p.engine;
+  $('optBibtex').checked = !!p.bibtex;
+  $('optRerun').checked = !!p.rerun;
+  $('logText').textContent = '';
+  diags = []; renderProblems(); updateLogBadge(); setLogTab('problems');
+  setSaveState('Saved');
+  setStatus(engineState.kind, engineState.text);
+  $('compileTime').textContent = '';
+  setLogOpen(false);
+  $('compileBtn').disabled = !runner || !Object.keys(engines).length;
+
+  clearPdf();
+  const cached = await pdfGet(p.id);
+  if (cached && cached.pdf) { syncRaw = cleanSync(cached.synctex); syncData = null; showPdf(cached.pdf); }
+
+  renderMainSelect();
+  renderTree();
+  const first = p.mainFile || Object.keys(p.files).find((k) => p.files[k].t === 'text');
+  if (first) openFile(first); else { renderTabs(); showPane('none'); }
+  if (Object.keys(engines).length && !cached) compile();
+  scheduleSyncOne(p.id, 3000);
+}
+
+async function closeProject() {
+  await saveNow();
+  clearTimeout(debounceTimer);
+  proj = null; active = null; openTabs = [];
+  clearPdf();
+  if (binaryUrl) { URL.revokeObjectURL(binaryUrl); binaryUrl = null; }
+  document.title = 'MAJAЯ LaTeX Editor';
+  $('workspace').hidden = true; $('dashboard').hidden = false;
+  renderDashboard();
+  scheduleSyncAll(600, 15000);
+}
+
+let routing = Promise.resolve();
+function route() {
+  routing = routing.then(async () => {
+    const m = /^#\/p\/(.+)$/.exec(location.hash);
+    if (m) { if (proj) await saveNow(); await openProject(decodeURIComponent(m[1])); }
+    else if (proj) await closeProject();
+    else { $('workspace').hidden = true; $('dashboard').hidden = false; await renderDashboard(); scheduleSyncAll(600, 15000); }
+  }).catch((e) => console.error(e));
+}
+window.addEventListener('hashchange', route);
+$('backBtn').addEventListener('click', () => { location.hash = ''; });
+
+/* ---- header controls ---- */
+$('projectName').addEventListener('change', () => {
+  const v = $('projectName').value.trim();
+  if (v) { proj.name = v; document.title = `${v} — MAJAЯ LaTeX Editor`; markDirty(); } else $('projectName').value = proj.name;
+});
+$('projectName').addEventListener('keydown', (e) => { if (e.key === 'Enter') e.target.blur(); });
+$('engineSelect').addEventListener('change', () => { proj.engine = $('engineSelect').value; markDirty(); compile(); });
+$('optBibtex').addEventListener('change', () => { proj.bibtex = $('optBibtex').checked; markDirty(); scheduleAutoCompile(true); });
+$('optRerun').addEventListener('change', () => { proj.rerun = $('optRerun').checked; markDirty(); scheduleAutoCompile(true); });
+$('mainSelect').addEventListener('change', () => { proj.mainFile = $('mainSelect').value || null; renderTree(); markDirty(); compile(); });
+$('compileBtn').addEventListener('click', compile);
+$('downloadZipBtn').addEventListener('click', async () => { await saveNow(); exportZip(proj); });
+$('downloadPdfBtn').addEventListener('click', () => {
+  if (currentPdfBytes) downloadBlob(new Blob([currentPdfBytes], { type: 'application/pdf' }), `${slug(proj.name)}.pdf`);
+});
+$('logBtn').addEventListener('click', () => setLogOpen(!$('logDrawer').classList.contains('open')));
+$('logClose').addEventListener('click', () => setLogOpen(false));
+function setLogOpen(open) {
+  $('logDrawer').classList.toggle('open', open);
+  $('logBtn').setAttribute('aria-expanded', String(open));
+}
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('logDrawer').classList.contains('open') && !$('modalRoot').children.length) setLogOpen(false); });
+document.addEventListener('keydown', (e) => {
+  if (!proj || $('workspace').hidden) return;
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'Enter' || e.key.toLowerCase() === 's')) { e.preventDefault(); saveNow(); compile(); }
+});
+
+/* ---- main file selector ---- */
+function renderMainSelect() {
+  const tex = Object.keys(proj.files).filter((k) => extOf(k) === 'tex').sort();
+  const sel = $('mainSelect');
+  sel.innerHTML = tex.length ? tex.map((k) => `<option value="${esc(k)}">${esc(k)}</option>`).join('') : '<option value="">(no .tex files)</option>';
+  if (proj.mainFile && tex.includes(proj.mainFile)) sel.value = proj.mainFile;
+  else { proj.mainFile = tex[0] || null; sel.value = proj.mainFile || ''; }
+}
+
+/* ============================== file icons ============================== */
+const SVG = (inner) => `<svg class="ico" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
+const ICONS = {
+  tex: SVG('<path d="M4 1.8h5.2L12.5 5v9.2H4z"/><path d="M9 1.8V5h3.5"/><path d="M6 8.5h4M6 11h4"/>'),
+  bib: SVG('<path d="M3.5 2.5h8a1 1 0 0 1 1 1v10h-8a1 1 0 0 1-1-1z"/><path d="M5.5 5.5h5"/>'),
+  img: SVG('<rect x="2" y="3" width="12" height="10" rx="1.5"/><circle cx="6" cy="7" r="1.2"/><path d="M2.5 12l3.5-3 3 2.5 2-1.5 2.5 2"/>'),
+  file: SVG('<path d="M4 1.8h5.2L12.5 5v9.2H4z"/><path d="M9 1.8V5h3.5"/>'),
+  dir: SVG('<path d="M2 4.5a1 1 0 0 1 1-1h3l1.5 1.5H13a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/>'),
+};
+function iconKind(p) {
+  const e = extOf(p);
+  if (e === 'tex' || e === 'sty' || e === 'cls') return 'tex';
+  if (e === 'bib' || e === 'bst') return 'bib';
+  if (IMAGE_EXT[e]) return 'img';
+  return 'file';
+}
+const iconHtml = (kind) => `<span class="ico-wrap ${kind}">${ICONS[kind]}</span>`;
+
+/* ============================== file tree ============================== */
+function buildTree() {
+  const root = { dirs: {}, files: [], path: '' };
+  const ensure = (parts) => {
+    let n = root, acc = '';
+    for (const part of parts) {
+      acc = acc ? `${acc}/${part}` : part;
+      n = n.dirs[part] || (n.dirs[part] = { dirs: {}, files: [], path: acc });
+    }
+    return n;
+  };
+  proj.folders.forEach((f) => ensure(f.split('/')));
+  Object.keys(proj.files).forEach((p) => { const d = dirName(p); ensure(d ? d.split('/') : []).files.push(p); });
+  return root;
+}
+function renderTree() {
+  const root = buildTree();
+  const out = [];
+  const walk = (node, depth) => {
+    Object.keys(node.dirs).sort((a, b) => a.localeCompare(b)).forEach((name) => {
+      const d = node.dirs[name];
+      const isCollapsed = collapsed.has(d.path);
+      out.push(`<div class="trow dir" data-kind="dir" data-path="${esc(d.path)}" style="padding-left:${8 + depth * 14}px">
+        <span class="caret">${isCollapsed ? '▸' : '▾'}</span>${iconHtml('dir')}<span class="tname">${esc(name)}</span>
+        <span class="tact"><button data-act="newfile" title="New file in this folder" aria-label="New file in ${esc(name)}">+</button><button data-act="rename" title="Rename" aria-label="Rename ${esc(name)}">✎</button><button data-act="delete" title="Delete folder" aria-label="Delete ${esc(name)}">✕</button></span></div>`);
+      if (!isCollapsed) walk(d, depth + 1);
+    });
+    node.files.sort((a, b) => baseName(a).localeCompare(baseName(b))).forEach((p) => {
+      const isMain = p === proj.mainFile;
+      out.push(`<div class="trow file${p === active ? ' active' : ''}" data-kind="file" data-path="${esc(p)}" style="padding-left:${8 + depth * 14 + 17}px">
+        ${iconHtml(iconKind(p))}<span class="tname" title="${esc(p)}">${esc(baseName(p))}</span>${isMain ? '<span class="badge" title="Main file">★</span>' : ''}
+        <span class="tact">${extOf(p) === 'tex' && !isMain ? `<button data-act="setmain" title="Set as main file" aria-label="Set ${esc(baseName(p))} as main file">★</button>` : ''}<button data-act="rename" title="Rename" aria-label="Rename ${esc(baseName(p))}">✎</button><button data-act="delete" title="Delete" aria-label="Delete ${esc(baseName(p))}">✕</button></span></div>`);
+    });
+  };
+  walk(root, 0);
+  $('tree').innerHTML = out.join('') || '<div class="side-hint" style="border:none">This project is empty. Add a file to start.</div>';
+}
+
+$('tree').addEventListener('click', async (e) => {
+  const row = e.target.closest('.trow');
+  if (!row) return;
+  const path = row.dataset.path, kind = row.dataset.kind;
+  const btn = e.target.closest('button[data-act]');
+  if (btn) {
+    const act = btn.dataset.act;
+    if (act === 'newfile') return newFile(path);
+    if (act === 'rename') return renameItem(path, kind);
+    if (act === 'delete') return deleteItem(path, kind);
+    if (act === 'setmain') { proj.mainFile = path; renderMainSelect(); renderTree(); markDirty(); compile(); return; }
+  }
+  if (kind === 'dir') { collapsed.has(path) ? collapsed.delete(path) : collapsed.add(path); renderTree(); }
+  else openFile(path);
+});
+
+async function newFile(folder = '') {
+  const prefix = folder ? folder + '/' : '';
+  const r = await openDialog({
+    title: 'New file', message: 'Use a slash to create a file inside a folder, e.g. sections/intro.tex.',
+    fields: [{ label: 'File name', value: prefix + 'untitled.tex' }], ok: 'Create',
+    validate: (r) => { const p = normPath(r.value); return pathError(p) || (pathTaken(p) ? 'A file or folder with that name already exists.' : ''); },
+  });
+  if (!r) return;
+  const path = normPath(r.value);
+  proj.files[path] = isTextPath(path) ? { t: 'text', c: '' } : { t: 'text', c: '' };
+  if (!proj.mainFile && extOf(path) === 'tex') proj.mainFile = path;
+  renderMainSelect(); renderTree(); openFile(path); markDirty();
+}
+async function newFolder() {
+  const r = await openDialog({
+    title: 'New folder', fields: [{ label: 'Folder name', value: 'figures' }], ok: 'Create',
+    validate: (r) => { const p = normPath(r.value); return pathError(p) || (pathTaken(p) ? 'A file or folder with that name already exists.' : ''); },
+  });
+  if (!r) return;
+  proj.folders.push(normPath(r.value));
+  renderTree(); markDirty();
+}
+async function renameItem(path, kind) {
+  const r = await openDialog({
+    title: kind === 'dir' ? 'Rename folder' : 'Rename file', message: 'You can include slashes to move it into another folder.',
+    fields: [{ label: 'New path', value: path }], ok: 'Rename',
+    validate: (r) => { const p = normPath(r.value); if (p === path) return ''; return pathError(p) || (pathTaken(p, path) ? 'A file or folder with that name already exists.' : ''); },
+  });
+  if (!r) return;
+  const np = normPath(r.value);
+  if (np === path) return;
+  const remap = (k) => (k === path ? np : k.startsWith(path + '/') ? np + k.slice(path.length) : k);
+  const files = {};
+  Object.entries(proj.files).forEach(([k, v]) => { files[remap(k)] = v; });
+  proj.files = files;
+  proj.folders = proj.folders.map(remap);
+  openTabs = openTabs.map(remap);
+  if (active) active = remap(active);
+  if (proj.mainFile) proj.mainFile = remap(proj.mainFile);
+  collapsed = new Set([...collapsed].map(remap));
+  renderMainSelect(); renderTree(); renderTabs(); markDirty();
+}
+async function deleteItem(path, kind) {
+  const r = await openDialog({
+    title: kind === 'dir' ? 'Delete folder?' : 'Delete file?',
+    message: kind === 'dir' ? `"${path}" and everything inside it will be deleted.` : `"${path}" will be deleted.`,
+    ok: 'Delete', danger: true,
+  });
+  if (!r) return;
+  const gone = (k) => k === path || k.startsWith(path + '/');
+  Object.keys(proj.files).forEach((k) => { if (gone(k)) delete proj.files[k]; });
+  proj.folders = proj.folders.filter((k) => !gone(k));
+  openTabs = openTabs.filter((k) => !gone(k));
+  if (active && gone(active)) active = openTabs[openTabs.length - 1] || null;
+  if (proj.mainFile && gone(proj.mainFile)) proj.mainFile = detectMain(proj.files);
+  renderMainSelect(); renderTree();
+  active ? openFile(active) : (renderTabs(), showPane('none'));
+  markDirty();
+}
+$('newFileBtn').addEventListener('click', () => newFile(active ? dirName(active) : ''));
+$('newFolderBtn').addEventListener('click', newFolder);
+$('uploadBtn').addEventListener('click', () => $('uploadInput').click());
+$('uploadInput').addEventListener('change', async () => { await addUploads([...$('uploadInput').files]); $('uploadInput').value = ''; });
+
+const sidebar = $('sidebar');
+['dragenter', 'dragover'].forEach((ev) => sidebar.addEventListener(ev, (e) => { e.preventDefault(); sidebar.classList.add('drop'); }));
+['dragleave', 'drop'].forEach((ev) => sidebar.addEventListener(ev, (e) => { e.preventDefault(); sidebar.classList.remove('drop'); }));
+sidebar.addEventListener('drop', (e) => addUploads([...e.dataTransfer.files]));
+
+async function addUploads(files) {
+  if (!files.length) return;
+  const folder = active ? dirName(active) : '';
+  for (const f of files) {
+    const path = (folder ? folder + '/' : '') + f.name;
+    if (pathTaken(path) && !proj.files[path]) continue;
+    proj.files[path] = await readFileEntry(f);
+  }
+  if (!proj.mainFile) proj.mainFile = detectMain(proj.files);
+  if (hasBib(proj)) proj.bibtex = proj.bibtex ?? true;
+  renderMainSelect(); renderTree(); markDirty();
+  if (!active) { const t = files.find((f) => isTextPath(f.name)); if (t) openFile(t.name); }
+  scheduleAutoCompile(true);
+}
+
+/* ============================== tabs + editor ============================== */
+function showPane(which) {
+  $('editorWrap').hidden = which !== 'text';
+  $('fwdBtn').hidden = which !== 'text';
+  $('binaryView').hidden = which !== 'bin';
+  $('noFile').hidden = which !== 'none';
+}
+function renderTabs() {
+  $('tabs').innerHTML = openTabs.map((p) =>
+    `<div class="tab${p === active ? ' active' : ''}" data-path="${esc(p)}" title="${esc(p)}">${esc(baseName(p))}<span class="x" data-close="1" role="button" aria-label="Close ${esc(baseName(p))}">×</span></div>`).join('');
+}
+$('tabs').addEventListener('click', (e) => {
+  const tab = e.target.closest('.tab');
+  if (!tab) return;
+  const path = tab.dataset.path;
+  if (e.target.dataset.close) {
+    openTabs = openTabs.filter((p) => p !== path);
+    if (active === path) active = openTabs[openTabs.length - 1] || null;
+    renderTree();
+    active ? openFile(active) : (renderTabs(), showPane('none'));
+  } else openFile(path);
+});
+
+function openFile(path) {
+  const f = proj.files[path];
+  if (!f) return;
+  if (!openTabs.includes(path)) openTabs.push(path);
+  active = path;
+  renderTabs(); renderTree();
+  if (binaryUrl) { URL.revokeObjectURL(binaryUrl); binaryUrl = null; }
+  if (f.t === 'text') {
+    showPane('text');
+    editor.value = f.c;
+    editor.scrollTop = 0; editor.scrollLeft = 0;
+    updateGutter(true);
+    updateHighlight();
+    editor.focus({ preventScroll: true });
+  } else {
+    showPane('bin');
+    const ext = extOf(path);
+    const size = f.c.byteLength < 1024 ? `${f.c.byteLength} B` : `${(f.c.byteLength / 1024).toFixed(1)} KB`;
+    if (IMAGE_EXT[ext]) {
+      binaryUrl = URL.createObjectURL(new Blob([f.c], { type: IMAGE_EXT[ext] }));
+      $('binaryView').innerHTML = `<img src="${binaryUrl}" alt="${esc(path)}"><div>${esc(path)} · ${size}</div>`;
+    } else {
+      $('binaryView').innerHTML = `<div>${esc(path)} · ${size}</div><div>This file can't be edited here, but LaTeX can use it (for example with \\includegraphics).</div>`;
+    }
+  }
+}
+
+/* ---- syntax highlighting (LaTeX + BibTeX), pure string -> HTML ---- */
+const HL_TEX = /(%[^\n]*)|(\\\\)|(\\(?:begin|end)\s*\{[^}\n]*\})|(\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)|\$\$[\s\S]*?\$\$|\$(?:\\[\s\S]|[^$\\\n]|\n(?!\s*\n))+?\$)|(\\[a-zA-Z@]+\*?|\\[^a-zA-Z@\n])|([{}\[\]])|(&)/g;
+const HL_BIB = /(@[A-Za-z]+)|([A-Za-z_][\w-]*(?=\s*=))|([{}])/g;
+const hlSpan = (cls, text) => `<span class="${cls}">${esc(text)}</span>`;
+
+function hlTex(src) {
+  let out = '', last = 0, m;
+  HL_TEX.lastIndex = 0;
+  while ((m = HL_TEX.exec(src))) {
+    if (m.index > last) out += esc(src.slice(last, m.index));
+    const t = m[0];
+    if (m[1]) out += hlSpan('t-c', t);
+    else if (m[2] || m[7]) out += hlSpan('t-s', t);
+    else if (m[3]) {
+      const mm = /^(\\(?:begin|end))(\s*\{)([^}\n]*)(\})$/.exec(t);
+      out += mm ? hlSpan('t-k', mm[1]) + hlSpan('t-b', mm[2]) + hlSpan('t-e', mm[3]) + hlSpan('t-b', mm[4]) : esc(t);
+    } else if (m[4]) {
+      out += `<span class="t-m">${esc(t).replace(/\\[a-zA-Z@]+\*?/g, (c) => `<span class="t-mk">${c}</span>`)}</span>`;
+    } else if (m[5]) out += hlSpan('t-k', t);
+    else out += hlSpan('t-b', t);
+    last = HL_TEX.lastIndex;
+  }
+  return out + esc(src.slice(last));
+}
+function hlBib(src) {
+  let out = '', last = 0, m;
+  HL_BIB.lastIndex = 0;
+  while ((m = HL_BIB.exec(src))) {
+    if (m.index > last) out += esc(src.slice(last, m.index));
+    out += hlSpan(m[1] ? 't-e' : m[2] ? 't-k' : 't-b', m[0]);
+    last = HL_BIB.lastIndex;
+  }
+  return out + esc(src.slice(last));
+}
+function highlightFor(path, src) {
+  const e = extOf(path);
+  if (e === 'tex' || e === 'sty' || e === 'cls' || e === 'ltx' || e === 'latex' || e === 'def') return hlTex(src);
+  if (e === 'bib') return hlBib(src);
+  return esc(src);
+}
+
+let hlFrame = 0;
+function syncEditorScroll() {
+  $('gutter').scrollTop = editor.scrollTop;
+  const h = $('highlight');
+  h.scrollTop = editor.scrollTop;
+  h.scrollLeft = editor.scrollLeft;
+}
+function updateHighlight() {
+  const f = proj && active && proj.files[active];
+  $('highlight').innerHTML = (f && f.t === 'text' ? highlightFor(active, editor.value) : '') + '\n';
+  syncEditorScroll();
+}
+function scheduleHighlight() {
+  if (hlFrame) return;
+  hlFrame = requestAnimationFrame(() => { hlFrame = 0; updateHighlight(); });
+}
+
+let gutterLines = 0;
+function updateGutter(force) {
+  const n = editor.value.split('\n').length;
+  if (force || n !== gutterLines) {
+    gutterLines = n;
+    let s = '';
+    for (let i = 1; i <= n; i++) s += i + '\n';
+    $('gutter').textContent = s;
+    $('gutter').style.minWidth = `${Math.max(42, String(n).length * 9 + 22)}px`;
+  }
+  $('gutter').scrollTop = editor.scrollTop;
+}
+editor.addEventListener('scroll', syncEditorScroll);
+editor.addEventListener('input', () => {
+  if (!active || !proj.files[active] || proj.files[active].t !== 'text') return;
+  proj.files[active].c = editor.value;
+  updateGutter();
+  scheduleHighlight();
+  markDirty();
+  if (extOf(active) !== 'txt' && extOf(active) !== 'md') scheduleAutoCompile();
+});
+editor.addEventListener('keydown', (e) => {
+  if (e.key === 'Tab' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    e.preventDefault();
+    editor.setRangeText('  ', editor.selectionStart, editor.selectionEnd, 'end');
+    editor.dispatchEvent(new Event('input'));
+  }
+});
+
+/* ---- SyncTeX: parse the .synctex.gz and map a PDF point back to a source line ---- */
+const SYNC_REC = /^([\[\(vhkgx$])(\d+),(\d+)(?:,-?\d+)?:(-?\d+),(-?\d+)(?::(-?\d+)(?:,(-?\d+),(-?\d+))?)?/;
+
+async function parseSynctex(bytes) {
+  let text;
+  if (bytes[0] === 0x1f && bytes[1] === 0x8b) {
+    text = await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+  } else {
+    text = new TextDecoder().decode(bytes);
+  }
+  const inputs = {};
+  let unit = 1, mag = 1000, xo = 0, yo = 0, inContent = false;
+  const pages = [];
+  let page = null;
+  const stack = [];
+  for (const ln of text.split('\n')) {
+    // \input / \include files are registered where they are first opened, i.e. inside the content part too
+    if (ln.charCodeAt(0) === 73 && ln.startsWith('Input:')) {
+      const im = /^Input:(\d+):(.*)$/.exec(ln);
+      if (im) inputs[im[1]] = im[2].trim();
+      continue;
+    }
+    if (!inContent) {
+      if (ln.startsWith('Magnification:')) mag = +ln.slice(14) || 1000;
+      else if (ln.startsWith('Unit:')) unit = +ln.slice(5) || 1;
+      else if (ln.startsWith('X Offset:')) xo = +ln.slice(9) || 0;
+      else if (ln.startsWith('Y Offset:')) yo = +ln.slice(9) || 0;
+      else if (ln.startsWith('Content:')) inContent = true;
+      continue;
+    }
+    const c = ln[0];
+    if (c === '{') { page = { n: +ln.slice(1), boxes: [], all: [] }; pages.push(page); stack.length = 0; continue; }
+    if (c === '}') { page = null; continue; }
+    if (!page) { if (ln.startsWith('Postamble')) break; continue; }
+    if (c === ']' || c === ')') { stack.pop(); continue; }
+    const m = SYNC_REC.exec(ln);
+    if (!m) continue;
+    const node = {
+      k: m[1], tag: +m[2], line: +m[3], x: +m[4], y: +m[5],
+      w: +(m[6] || 0), h: +(m[7] || 0), d: +(m[8] || 0), kids: [], parent: stack[stack.length - 1] || null,
+    };
+    if (node.parent) node.parent.kids.push(node);
+    page.all.push(node);
+    if (m[1] === '[' || m[1] === '(') stack.push(node);
+    if (m[1] === '(' || m[1] === 'h') page.boxes.push(node);
+  }
+  // sp → PDF points (bp): 65536 sp per TeX pt, 72.27 TeX pt per inch, 72 bp per inch
+  return { inputs, pages, xo, yo, f: (unit * (mag / 1000)) / 65781.76 };
+}
+
+function synctexLookup(data, pageNum, xpt, ypt) {
+  const pg = data.pages.find((p) => p.n === pageNum);
+  if (!pg) return null;
+  const { f, xo, yo } = data;
+  const rect = (n) => {
+    const y = (n.y + yo) * f, x0 = (n.x + xo) * f;
+    return { x0, x1: x0 + n.w * f, y0: y - n.h * f, y1: y + n.d * f };
+  };
+  let best = null, bestArea = Infinity, near = null, nearDist = Infinity;
+  for (const n of pg.boxes) {
+    const r = rect(n);
+    if (xpt >= r.x0 && xpt <= r.x1 && ypt >= r.y0 && ypt <= r.y1) {
+      const a = (r.x1 - r.x0) * (r.y1 - r.y0);
+      if (a < bestArea) { best = n; bestArea = a; }
+    } else if (n.k === '(') {
+      const dx = Math.max(r.x0 - xpt, 0, xpt - r.x1), dy = Math.max(r.y0 - ypt, 0, ypt - r.y1);
+      const dist = Math.hypot(dx, dy);
+      if (dist < nearDist) { near = n; nearDist = dist; }
+    }
+  }
+  best = best || near;
+  if (!best) return null;
+  // inside that line box, the glue/kern records carry the exact source line of each word
+  const cand = [];
+  (function walk(n) { for (const k of n.kids) { if (k.line > 0) cand.push(k); walk(k); } })(best);
+  let hit = best;
+  if (cand.length) {
+    let bestD = Infinity;
+    for (const n of cand) {
+      const cx = (n.x + xo) * f + (n.k === 'k' || n.k === '(' || n.k === 'h' || n.k === '[' || n.k === 'v' ? (n.w * f) / 2 : 0);
+      const dist = Math.abs(cx - xpt);
+      if (dist < bestD) { bestD = dist; hit = n; }
+    }
+  }
+  while (hit && hit.line <= 0) hit = hit.parent;
+  return hit ? { tag: hit.tag, line: hit.line } : null;
+}
+
+/* source line -> where it landed in the PDF (editor -> PDF) */
+function synctexForward(data, tags, line) {
+  const { f, xo, yo } = data;
+  let best = null, bestScore = Infinity, bestPage = null;
+  for (const pg of data.pages) {
+    for (const n of pg.all) {
+      if (n.line <= 0 || !tags.has(n.tag)) continue;
+      // exact word-level records beat whole boxes; nearer lines beat farther ones
+      const score = Math.abs(n.line - line) * 2 + (n.k === '(' || n.k === '[' ? 1 : 0);
+      if (score < bestScore) { best = n; bestScore = score; bestPage = pg; }
+    }
+  }
+  if (!best) return null;
+  let box = best;
+  while (box && box.k !== '(') box = box.parent;
+  const r = (n) => {
+    const y = (n.y + yo) * f, x0 = (n.x + xo) * f;
+    return { x0, x1: x0 + n.w * f, y0: y - n.h * f, y1: y + n.d * f };
+  };
+  const band = box ? r(box) : null;
+  return {
+    page: bestPage.n, line: best.line,
+    px: (best.x + xo) * f, py: (best.y + yo) * f,
+    band: band && band.y1 - band.y0 < 160 ? band : null,
+  };
+}
+
+/* ============================== toast ============================== */
+let toastTimer = null;
+function toast(msg, ms = 3500) {
+  const t = $('toast');
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.hidden = true; }, ms);
+}
+
+/* ============================== PDF pane (pdf.js) ============================== */
+const PDFJS_BASE = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/';
+let pdfjsPromise = null, pdfjsFailed = false;
+let pdfDoc = null, pdfPageInfos = [];
+let pdfScaleMode = 'fit', pdfScale = 1.3, pdfCssScale = 1.3;
+let viewGen = 0, pageObserver = null;
+let syncRaw = null, syncData = null;
+// The engine returns an empty Uint8Array (truthy!) when no .synctex.gz was written, so check the length.
+const cleanSync = (b) => (b && b.length > 32 ? new Uint8Array(b) : null);
+
+function loadPdfjs() {
+  if (!pdfjsPromise) {
+    pdfjsPromise = (async () => {
+      const lib = await import(PDFJS_BASE + 'pdf.min.mjs');
+      // a worker must be same-origin, so wrap the CDN script in a blob URL
+      const res = await fetch(PDFJS_BASE + 'pdf.worker.min.mjs');
+      if (!res.ok) throw new Error('pdf.js worker could not be downloaded');
+      lib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([await res.text()], { type: 'text/javascript' }));
+      return lib;
+    })();
+  }
+  return pdfjsPromise;
+}
+
+function releasePage(info) {
+  info.token = (info.token || 0) + 1;
+  if (info.task) { try { info.task.cancel(); } catch (e) { /* already done */ } info.task = null; }
+  if (info.el && info.canvas) {
+    const fresh = document.createElement('canvas');
+    info.el.replaceChild(fresh, info.canvas);
+    info.canvas = fresh;
+  }
+  if (info.links) { info.links.remove(); info.links = null; }
+  info.done = false; info.rendering = false;
+}
+const cancelAllRenders = () => pdfPageInfos.forEach(releasePage);
+
+async function renderPage(info) {
+  if (info.done || info.rendering || !info.el) return;
+  info.rendering = true;
+  const token = (info.token = (info.token || 0) + 1);
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const vp = info.page.getViewport({ scale: pdfCssScale * dpr });
+  const cv = info.canvas;
+  cv.width = Math.floor(vp.width); cv.height = Math.floor(vp.height);
+  cv.style.width = `${info.w * pdfCssScale}px`; cv.style.height = `${info.h * pdfCssScale}px`;
+  try {
+    info.task = info.page.render({ canvasContext: cv.getContext('2d'), viewport: vp });
+    await info.task.promise;
+    if (info.token === token) { info.done = true; addLinks(info, token); }
+  } catch (e) { /* cancelled while scrolling */ }
+  if (info.token === token) { info.rendering = false; info.task = null; }
+}
+
+/* ---- links inside the PDF (contents, \\ref, citations, URLs) ---- */
+async function addLinks(info, token) {
+  try {
+    const anns = await info.page.getAnnotations({ intent: 'display' });
+    if (info.token !== token || !info.el) return;
+    const vp = info.page.getViewport({ scale: pdfCssScale });
+    const layer = document.createElement('div');
+    for (const a of anns) {
+      if (a.subtype !== 'Link' || !a.rect || !(a.dest || a.url || a.unsafeUrl)) continue;
+      const [x1, y1, x2, y2] = vp.convertToViewportRectangle(a.rect);
+      const el = document.createElement('a');
+      el.className = 'pdf-link';
+      el.style.left = `${Math.min(x1, x2)}px`; el.style.top = `${Math.min(y1, y2)}px`;
+      el.style.width = `${Math.abs(x2 - x1)}px`; el.style.height = `${Math.abs(y2 - y1)}px`;
+      if (a.url || a.unsafeUrl) {
+        el.href = a.url || a.unsafeUrl; el.target = '_blank'; el.rel = 'noopener noreferrer';
+      } else {
+        el.href = '#'; el.addEventListener('click', (e) => { e.preventDefault(); goToDest(a.dest); });
+      }
+      layer.appendChild(el);
+    }
+    if (info.token !== token || !info.el) return;
+    layer.className = 'pdf-links';
+    info.el.appendChild(layer);
+    info.links = layer;
+  } catch (e) { /* page was released while loading annotations */ }
+}
+async function goToDest(dest) {
+  if (!pdfDoc) return;
+  try {
+    const d = typeof dest === 'string' ? await pdfDoc.getDestination(dest) : dest;
+    if (!d) return;
+    const idx = typeof d[0] === 'object' ? await pdfDoc.getPageIndex(d[0]) : d[0];
+    const info = pdfPageInfos[idx];
+    if (!info || !info.el) return;
+    const mode = d[1] && d[1].name;
+    const top = mode === 'XYZ' ? d[3] : (mode === 'FitH' || mode === 'FitBH') ? d[2] : null;
+    const y = top == null ? 0 : Math.max(0, (info.h - top) * pdfCssScale - 24);
+    const sc = $('pdfScroll');
+    sc.scrollTo({ top: info.el.offsetTop + y, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  } catch (e) { console.warn('Could not follow PDF link', e); }
+}
+
+function layoutPages() {
+  cancelAllRenders();
+  if (pageObserver) pageObserver.disconnect();
+  const sc = $('pdfScroll'), box = $('pdfPages');
+  box.innerHTML = '';
+  if (!pdfPageInfos.length) return;
+  const widest = Math.max(...pdfPageInfos.map((p) => p.w));
+  pdfCssScale = pdfScaleMode === 'fit' ? Math.min(3, Math.max(0.3, (Math.max(200, sc.clientWidth) - 28) / widest)) : pdfScale;
+  pageObserver = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      const info = pdfPageInfos[+e.target.dataset.i];
+      if (!info) continue;
+      e.isIntersecting ? renderPage(info) : releasePage(info);
+    }
+  }, { root: sc, rootMargin: '900px 0px' });
+  pdfPageInfos.forEach((info, i) => {
+    const el = document.createElement('div');
+    el.className = 'pdf-page'; el.dataset.i = i;
+    el.style.width = `${info.w * pdfCssScale}px`; el.style.height = `${info.h * pdfCssScale}px`;
+    const cv = document.createElement('canvas');
+    el.appendChild(cv); box.appendChild(el);
+    Object.assign(info, { el, canvas: cv, done: false, rendering: false, task: null });
+    pageObserver.observe(el);
+  });
+  updatePageInfo();
+}
+function relayout() {
+  const sc = $('pdfScroll');
+  const r = sc.scrollHeight ? sc.scrollTop / sc.scrollHeight : 0;
+  layoutPages();
+  sc.scrollTop = r * sc.scrollHeight;
+}
+function updatePageInfo() {
+  if (!pdfPageInfos.length) return;
+  const sc = $('pdfScroll'), mid = sc.scrollTop + sc.clientHeight / 3;
+  let cur = 0;
+  for (let i = 0; i < pdfPageInfos.length; i++) { if (pdfPageInfos[i].el && pdfPageInfos[i].el.offsetTop <= mid) cur = i; else break; }
+  $('pageInfo').textContent = `Page ${cur + 1} of ${pdfPageInfos.length}`;
+  $('zoomLabel').textContent = `${Math.round((pdfCssScale / (96 / 72)) * 100)}%`;
+}
+let pageInfoFrame = 0;
+$('pdfScroll').addEventListener('scroll', () => {
+  if (pageInfoFrame) return;
+  pageInfoFrame = requestAnimationFrame(() => { pageInfoFrame = 0; updatePageInfo(); });
+});
+$('zoomIn').addEventListener('click', () => { pdfScaleMode = 'manual'; pdfScale = Math.min(4, pdfCssScale * 1.2); relayout(); });
+$('zoomOut').addEventListener('click', () => { pdfScaleMode = 'manual'; pdfScale = Math.max(0.3, pdfCssScale / 1.2); relayout(); });
+$('zoomFit').addEventListener('click', () => { pdfScaleMode = 'fit'; relayout(); });
+{
+  let lastW = 0, timer = null;
+  new ResizeObserver(() => {
+    const w = $('pdfScroll').clientWidth;
+    const skip = !pdfDoc || pdfScaleMode !== 'fit' || Math.abs(w - lastW) < 3;
+    lastW = w;
+    if (skip) return;
+    clearTimeout(timer); timer = setTimeout(relayout, 180);
+  }).observe($('pdfScroll'));
+}
+
+function clearPdf() {
+  viewGen++;
+  cancelAllRenders();
+  if (pageObserver) { pageObserver.disconnect(); pageObserver = null; }
+  if (pdfDoc) { pdfDoc.destroy().catch(() => {}); pdfDoc = null; }
+  pdfPageInfos = [];
+  $('pdfPages').innerHTML = '';
+  $('pdfScroll').scrollTop = 0; $('pdfScroll').hidden = true; $('pdfBar').hidden = true;
+  if (currentPdfUrl) URL.revokeObjectURL(currentPdfUrl);
+  currentPdfUrl = null; currentPdfBytes = null; syncRaw = null; syncData = null;
+  $('pdfFrame').removeAttribute('src'); $('pdfFrame').style.display = 'none';
+  $('pdfPlaceholder').style.display = 'flex';
+  $('downloadPdfBtn').disabled = true;
+}
+
+function showIframe(bytes) {
+  // fallback when pdf.js can't load: browser viewer, no jump-to-source
+  $('pdfScroll').hidden = true; $('pdfBar').hidden = true;
+  if (currentPdfUrl) URL.revokeObjectURL(currentPdfUrl);
+  currentPdfUrl = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+  $('pdfFrame').src = currentPdfUrl;
+  $('pdfFrame').style.display = 'block';
+}
+
+async function showPdf(bytes) {
+  currentPdfBytes = bytes;
+  $('downloadPdfBtn').disabled = false;
+  $('pdfPlaceholder').style.display = 'none';
+  let lib = null;
+  if (!pdfjsFailed) {
+    try { lib = await loadPdfjs(); } catch (e) { console.warn('pdf.js unavailable, using the browser viewer', e); pdfjsFailed = true; }
+  }
+  if (!lib) return showIframe(bytes);
+  const gen = ++viewGen;
+  const sc = $('pdfScroll');
+  const ratio = !sc.hidden && sc.scrollHeight ? sc.scrollTop / sc.scrollHeight : 0;   // keep your place across recompiles
+  try {
+    const doc = await lib.getDocument({ data: new Uint8Array(bytes) }).promise;
+    if (gen !== viewGen) { doc.destroy(); return; }
+    const infos = [];
+    for (let i = 1; i <= doc.numPages; i++) {
+      const page = await doc.getPage(i);
+      const vp = page.getViewport({ scale: 1 });
+      infos.push({ page, w: vp.width, h: vp.height, num: i });
+    }
+    if (gen !== viewGen) { doc.destroy(); return; }
+    cancelAllRenders();
+    const old = pdfDoc;
+    pdfDoc = doc; pdfPageInfos = infos;
+    $('pdfFrame').style.display = 'none';
+    sc.hidden = false; $('pdfBar').hidden = false;
+    layoutPages();
+    sc.scrollTop = ratio * sc.scrollHeight;
+    if (old) old.destroy().catch(() => {});
+  } catch (err) {
+    console.warn('pdf.js failed, using the browser viewer', err);
+    if (gen === viewGen) { pdfjsFailed = true; showIframe(bytes); }
+  }
+}
+
+/* ---- double-click the PDF → jump to the source line ---- */
+function resolveSyncPath(inputPath, tag) {
+  if (!proj) return null;
+  // The engine always compiles the main document under the name main.tex and it is always input #1,
+  // so tag 1 is the project's main file whatever it is called here.
+  if (tag === 1 && proj.mainFile) return proj.mainFile;
+  const clean = (inputPath || '').replace(/\\/g, '/').replace(/\/\.\//g, '/').replace(/^(\.\/)+/, '');
+  const paths = Object.keys(proj.files).filter((p) => proj.files[p].t === 'text' && p !== 'main.tex').sort((x, y) => y.length - x.length);
+  const hit = clean && paths.find((p) => clean === p || clean.endsWith('/' + p));
+  if (hit) return hit;
+  return null;
+}
+function flashLine(n, lh) {
+  const box = $('codeBox');
+  const d = document.createElement('div');
+  d.className = 'line-flash';
+  d.style.top = `${14 + (n - 1) * lh - editor.scrollTop}px`;
+  d.style.height = `${lh}px`;
+  box.appendChild(d);
+  setTimeout(() => d.remove(), 1900);
+}
+function goToSource(path, line) {
+  const f = proj.files[path];
+  if (!f || f.t !== 'text') { toast('That spot comes from a package or file outside this project.'); return; }
+  openFile(path);
+  const lines = f.c.split('\n');
+  const n = Math.min(Math.max(1, line), lines.length);
+  let start = 0;
+  for (let i = 0; i < n - 1; i++) start += lines[i].length + 1;
+  editor.focus();
+  editor.setSelectionRange(start, start + lines[n - 1].length);
+  const lh = parseFloat(getComputedStyle(editor).lineHeight) || 21;
+  editor.scrollTop = Math.max(0, (n - 1) * lh - editor.clientHeight / 2);
+  syncEditorScroll();
+  flashLine(n, lh);
+}
+async function getSyncData() {
+  if (!pdfDoc) throw new Error(pdfjsFailed ? 'The PDF.js viewer could not load (CDN blocked?), so jumping is unavailable. Reload the page.' : 'Compile first, then try again.');
+  if (!syncRaw) throw new Error(`The ${ENGINE_LABEL[proj.engine] || 'engine'} run returned no SyncTeX data. Recompile; if it persists, switch the engine to pdfLaTeX.`);
+  if (!syncData) {
+    const d = await parseSynctex(syncRaw);
+    const boxes = d.pages.reduce((n, pg) => n + pg.boxes.length, 0);
+    console.info('[SyncTeX]', { pages: d.pages.length, boxes, inputs: d.inputs });
+    if (!d.pages.length || !boxes) throw new Error('SyncTeX data was empty or in an unexpected format (see the browser console).');
+    syncData = d;
+  }
+  return syncData;
+}
+async function jumpFromPdf(pageNum, xpt, ypt) {
+  try {
+    await getSyncData();
+    const hit = synctexLookup(syncData, pageNum, xpt, ypt);
+    if (!hit) { toast("Couldn't find the source for that spot."); return; }
+    const path = resolveSyncPath(syncData.inputs[hit.tag], hit.tag);
+    if (!path) { console.warn('[SyncTeX] unmapped input', hit.tag, syncData.inputs[hit.tag]); toast('That spot comes from a package or file outside this project.'); return; }
+    goToSource(path, hit.line);
+  } catch (err) {
+    console.error(err);
+    toast(err.message || 'SyncTeX data could not be read.', 6000);
+  }
+}
+function showMarker(el, x, y) {
+  const d = document.createElement('div');
+  d.className = 'sync-marker';
+  d.style.left = `${x}px`; d.style.top = `${y}px`;
+  el.appendChild(d);
+  setTimeout(() => d.remove(), 1000);
+}
+/* ---- editor line -> PDF ---- */
+function revealInPdf(hit) {
+  const info = pdfPageInfos.find((p) => p.num === hit.page);
+  if (!info || !info.el) return;
+  const sc = $('pdfScroll'), k = pdfCssScale;
+  const focusY = hit.band ? hit.band.y0 : hit.py;
+  const top = Math.max(0, info.el.offsetTop + focusY * k - sc.clientHeight / 3);
+  if (sc.scrollTo) sc.scrollTo({ top, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  else sc.scrollTop = top;
+  if (hit.band) {
+    const d = document.createElement('div');
+    d.className = 'sync-band';
+    d.style.left = `${hit.band.x0 * k - 4}px`; d.style.top = `${hit.band.y0 * k - 2}px`;
+    d.style.width = `${(hit.band.x1 - hit.band.x0) * k + 8}px`; d.style.height = `${(hit.band.y1 - hit.band.y0) * k + 4}px`;
+    info.el.appendChild(d);
+    setTimeout(() => d.remove(), 1900);
+  } else {
+    showMarker(info.el, hit.px * k, hit.py * k);
+  }
+}
+async function jumpToPdf() {
+  if (!proj || !active || !proj.files[active] || proj.files[active].t !== 'text') return;
+  try {
+    await getSyncData();
+    const line = editor.value.slice(0, editor.selectionStart).split('\n').length;
+    const tags = new Set(Object.keys(syncData.inputs).filter((t) => resolveSyncPath(syncData.inputs[t], +t) === active).map(Number));
+    if (!tags.size) { console.warn('[SyncTeX] no input matches', active, syncData.inputs); toast('This file is not part of the compiled PDF.'); return; }
+    const hit = synctexForward(syncData, tags, line);
+    if (!hit) { toast("Couldn't find that line in the PDF."); return; }
+    revealInPdf(hit);
+  } catch (err) {
+    console.error(err);
+    toast(err.message || 'SyncTeX data could not be read.', 6000);
+  }
+}
+$('fwdBtn').addEventListener('click', jumpToPdf);
+editor.addEventListener('click', (e) => { if (e.ctrlKey || e.metaKey) jumpToPdf(); });
+
+$('pdfScroll').addEventListener('dblclick', (e) => {
+  if (e.target.closest('.pdf-link')) return;
+  const el = e.target.closest('.pdf-page');
+  if (!el || !proj) return;
+  const info = pdfPageInfos[+el.dataset.i];
+  if (!info) return;
+  const r = el.getBoundingClientRect();
+  showMarker(el, e.clientX - r.left, e.clientY - r.top);
+  jumpFromPdf(info.num, (e.clientX - r.left) / pdfCssScale, (e.clientY - r.top) / pdfCssScale);
+});
+
+/* resizable split */
+(() => {
+  const sp = $('splitter');
+  let dragging = false;
+  sp.addEventListener('pointerdown', (e) => { dragging = true; sp.setPointerCapture(e.pointerId); sp.classList.add('drag'); $('pdfFrame').style.pointerEvents = 'none'; });
+  sp.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const r = $('split').getBoundingClientRect();
+    const pct = Math.min(80, Math.max(20, ((e.clientX - r.left) / r.width) * 100));
+    $('editorPane').style.flex = `0 0 ${pct}%`;
+  });
+  const stop = () => { dragging = false; sp.classList.remove('drag'); $('pdfFrame').style.pointerEvents = ''; };
+  sp.addEventListener('pointerup', stop);
+  sp.addEventListener('pointercancel', stop);
+})();
+
+/* ============================== log diagnostics ============================== */
+function parseTexLog(raw, source = 'tex') {
+  const out = [];
+  const src = String(raw || '').replace(/\r/g, '').split('\n');
+  const lines = [];
+  for (let i = 0; i < src.length; i++) {            // TeX hard-wraps log lines at 79 characters; stitch them back
+    let l = src[i];
+    while (l.length === 79 && i + 1 < src.length && src[i + 1] !== '') l += src[++i];
+    lines.push(l);
+  }
+  const stack = [];
+  const opened = [];
+  const isSrc = (f) => f && /\.(tex|ltx|latex|sty|cls|def|cfg)$/i.test(f) && !/^\/(texlive|usr|opt)\//.test(f);
+  const alts = () => { const r = []; for (let k = stack.length - 1; k >= 0; k--) if (isSrc(stack[k]) && !r.includes(stack[k])) r.push(stack[k]); return r; };
+  const cur = () => { for (let k = stack.length - 1; k >= 0; k--) if (stack[k]) return stack[k]; return null; };
+  const scan = (l) => {
+    // group 1: a path that may contain spaces ("./My Chapters/Q 1.tex"), group 2: any other token after "("
+    const re = /\((\.{0,2}\/[^()\n]*?\.[A-Za-z0-9]{1,5})(?=[\s)]|$)|\(([^\s()]*)|\)/g; let m;
+    while ((m = re.exec(l))) {
+      if (m[0] === ')') stack.pop();
+      else {
+        const tok = m[1] || m[2];
+        const f = tok && /[./\\]/.test(tok) && !tok.startsWith('\\') ? tok : null;
+        stack.push(f);
+        if (isSrc(f)) opened.push(f);
+      }
+    }
+  };
+
+  const recent = () => { const r = []; for (let k = opened.length - 1; k >= 0 && r.length < 8; k--) if (!r.includes(opened[k])) r.push(opened[k]); return r; };
+  const add = (d) => { const a = alts(); out.push({ source, file: a[0] || cur(), alts: a, recent: recent(), line: null, ctx: '', ...d }); };
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i];
+    let m;
+    if (l.startsWith('! ')) {
+      let line = null, ctx = [];
+      for (let j = i + 1; j < Math.min(lines.length, i + 14); j++) {
+        const lm = /^l\.(\d+)\s?(.*)$/.exec(lines[j]);
+        if (lm) { line = +lm[1]; ctx = [lines[j], lines[j + 1] || ''].filter(Boolean); break; }
+        if (lines[j].startsWith('! ')) break;
+      }
+      add({ sev: 'error', msg: l.slice(2).trim(), line, ctx: ctx.join('\n') });
+      continue;
+    }
+    if ((m = /^(LaTeX|Package \S+|Class \S+|pdfTeX|LuaTeX|Module \S+) ?(Font )?Warning: (.*)$/.exec(l)) || (m = /^(LaTeX Font) (Warning): (.*)$/.exec(l))) {
+      let msg = m[3], j = i + 1;
+      while (j < lines.length && lines[j] !== '' && !/^l\.\d+/.test(lines[j]) && /^(\(\S+\)|\s{2,})/.test(lines[j])) { msg += ' ' + lines[j].replace(/^\(\S+\)\s*/, '').trim(); j++; }
+      const lm = /on input line (\d+)\.?/.exec(msg);
+      msg = msg.replace(/\s*on input line \d+\.?/, '').replace(/\s+/g, ' ').trim();
+      add({ sev: 'warning', msg: `${m[1]}: ${msg}`, line: lm ? +lm[1] : null });
+      i = j - 1;
+      continue;
+    }
+    if ((m = /^(Overfull|Underfull) \\([hv])box (.*?)(?:in paragraph at lines|in alignment at lines|detected at line|has occurred while \\output is active)\s*(\d+)?(?:--(\d+))?/.exec(l))) {
+      let j = i + 1; const quoted = [];
+      while (j < lines.length && lines[j] !== '') quoted.push(lines[j++]);   // the quoted text of the box may contain stray ( and )
+      add({ sev: 'box', msg: l.replace(/\s+/g, ' ').trim(), line: m[4] ? +m[4] : null, line2: m[5] ? +m[5] : null, hint: quoted.slice(0, 3).join(' ') });
+      i = j - 1;
+      continue;
+    }
+    scan(l);
+  }
+  return out;
+}
+function parseBibLog(raw) {
+  const out = [];
+  for (const l of String(raw || '').split('\n')) {
+    if (/^Warning--/.test(l)) out.push({ source: 'bibtex', sev: 'warning', msg: 'BibTeX: ' + l.slice(9).trim(), file: null, line: null, ctx: '' });
+    else if (/^(I couldn't open|I found no|---line \d+ of file|I was expecting)/.test(l) || /^! /.test(l)) out.push({ source: 'bibtex', sev: 'error', msg: 'BibTeX: ' + l.replace(/^! /, '').trim(), file: null, line: null, ctx: '' });
+  }
+  return out;
+}
+function collectDiagnostics(result) {
+  const logs = (result && result.logs) || [];
+  const texRe = /^(pdflatex|xelatex|lualatex|luahblatex)\b/;
+  let tex = null; const bib = [];
+  for (const e of logs) {
+    if (texRe.test(e.cmd || '')) { if (e.log || e.stdout) tex = e; }
+    else if (/^bibtex/.test(e.cmd || '')) bib.push(e);
+  }
+  let out = [];
+  if (tex) {
+    out = parseTexLog(tex.log);
+    if (!out.length && tex.stdout) out = parseTexLog(tex.stdout);
+  } else if (result && result.log) {
+    out = parseTexLog(result.log);
+  }
+  bib.forEach((e) => { out = out.concat(parseBibLog(e.log || e.stdout)); });
+  const hasReal = out.some((d) => d.sev === 'error' && !/^(Emergency stop|==> Fatal error)/.test(d.msg));
+  if (hasReal) out = out.filter((d) => !(d.sev === 'error' && /^(Emergency stop|==> Fatal error)/.test(d.msg)));
+  const seen = new Set();
+  return out.filter((d) => { const k = `${d.sev}|${d.file}|${d.line}|${d.msg}`; if (seen.has(k)) return false; seen.add(k); return true; });
+}
+
+
+let diags = [];
+function resolveLogPath(p) {
+  if (!p || !proj) return null;
+  const c = p.replace(/\\/g, '/').replace(/\/\.\//g, '/').replace(/^(\.\/)+/, '');
+  const hit = Object.keys(proj.files).filter((k) => proj.files[k].t === 'text' && k !== 'main.tex').sort((a, b) => b.length - a.length)
+    .find((k) => c === k || c.endsWith('/' + k));
+  if (hit) return hit;
+  if (/(^|\/)main\.tex$/.test(c)) return proj.mainFile;      // the engine always names the main document main.tex
+  return null;
+}
+function diagNeedles(d) {
+  const m = /(?:Reference|Citation|Label) `([^']+)'/.exec(d.msg || '');
+  if (m) return { keys: m[1].split(',').map((x) => x.trim()).filter(Boolean), words: [] };
+  if (d.sev === 'box' && d.hint) {
+    const text = d.hint.replace(/\\[A-Za-z@]+[\d./A-Za-z-]*/g, ' ').replace(/[^A-Za-z]+/g, ' ');
+    const words = [...new Set(text.split(' ').filter((w) => w.length >= 5).map((w) => w.toLowerCase()))].slice(0, 6);
+    if (words.length) return { keys: [], words };
+  }
+  return null;
+}
+function diagCandidates(d) {
+  const seen = new Set(), out = [];
+  for (const c of [d.file, ...(d.alts || []), ...(d.recent || [])]) {
+    const f = c && resolveLogPath(c);
+    if (f && proj.files[f] && proj.files[f].t === 'text' && !seen.has(f)) { seen.add(f); out.push(f); }
+  }
+  return { listed: out, all: Object.keys(proj.files).filter((k) => proj.files[k].t === 'text' && extOf(k) === 'tex') };
+}
+function fileMatches(f, d, need) {
+  const lines = proj.files[f].c.split('\n');
+  const lo = Math.max(0, (d.line || 1) - 1), hi = Math.min(lines.length, d.line2 || d.line || 1);
+  const seg = lines.slice(lo, Math.max(hi, lo + 1)).join('\n');
+  if (need.keys.length) return need.keys.some((k) => seg.includes(k));
+  const low = seg.toLowerCase();
+  return need.words.some((w) => low.includes(w));
+}
+function resolveDiag(d) {
+  if (!proj) return null;
+  const { listed, all } = diagCandidates(d);
+  const fits = (f) => !d.line || proj.files[f].c.split('\n').length >= d.line;
+  const need = d.line ? diagNeedles(d) : null;
+  if (need) {   // the parentheses in a TeX log are not reliable, so trust the source text itself when we can
+    const hit = listed.find((f) => fits(f) && fileMatches(f, d, need)) || all.find((f) => fits(f) && fileMatches(f, d, need));
+    if (hit) return hit;
+  }
+  return listed.find(fits) || null;
+}
+function whyUnresolved(d) {
+  const f = d.file ? d.file.replace(/^\.\//, '') : '';
+  if (/\.(aux|toc|out|lof|lot|bbl|blg|nav|snm)$/i.test(f)) return `This message comes from the generated file ${f}, not your source. Recompile once more and it usually disappears.`;
+  if (proj && d.line) {
+    const { listed } = diagCandidates(d);
+    if (listed.length) return `Line ${d.line} does not exist in ${listed[0]} (${proj.files[listed[0]].c.split('\n').length} lines), so TeX's log points to a file this editor cannot identify reliably.`;
+  }
+  if (f) return `Could not match "${f}" to a file in this project.`;
+  return 'TeX did not say which file this message belongs to.';
+}
+function setLogTab(which) {
+  const raw = which === 'raw';
+  $('problemList').hidden = raw; $('logText').hidden = !raw;
+  $('tabProblems').classList.toggle('on', !raw); $('tabRaw').classList.toggle('on', raw);
+}
+function renderProblems() {
+  const box = $('problemList');
+  if (!diags.length) { box.innerHTML = '<div class="prob-empty">No errors or warnings in the last run.</div>'; return; }
+  const order = { error: 0, warning: 1, box: 2 };
+  const label = { error: 'Error', warning: 'Warning', box: 'Box' };
+  box.innerHTML = diags.map((d, i) => [d, i]).sort((a, b) => order[a[0].sev] - order[b[0].sev] || a[1] - b[1]).map(([d, i]) => {
+    const f = resolveDiag(d);
+    const loc = f ? `${f}${d.line ? ':' + d.line : ''}` : (d.file ? d.file.replace(/^\.\//, '') : '');
+    return `<div class="prob" data-i="${i}" title="${f && d.line ? 'Click to jump to the source line' : ''}"><span class="sev ${d.sev}">${label[d.sev]}</span><span class="pmsg">${esc(d.msg)}</span>${loc ? `<span class="ploc">${esc(loc)}</span>` : ''}${d.ctx ? `<span class="pctx">${esc(d.ctx)}</span>` : ''}</div>`;
+  }).join('');
+}
+function updateLogBadge() {
+  const e = diags.filter((d) => d.sev === 'error').length, w = diags.filter((d) => d.sev === 'warning').length;
+  const b = $('logBtn');
+  b.textContent = 'Log' + (e ? ` · ${e} error${e === 1 ? '' : 's'}` : '') + (w ? ` · ${w} warning${w === 1 ? '' : 's'}` : '');
+  b.classList.toggle('alert', e > 0);
+  b.classList.toggle('warnb', e === 0 && w > 0);
+}
+$('tabProblems').addEventListener('click', () => setLogTab('problems'));
+$('tabRaw').addEventListener('click', () => setLogTab('raw'));
+$('problemList').addEventListener('click', (e) => {
+  const row = e.target.closest('.prob');
+  if (!row) return;
+  const d = diags[+row.dataset.i];
+  const path = d && resolveDiag(d);
+  if (!path) { console.warn('[log] unresolved', d); toast(whyUnresolved(d || {}), 7000); return; }
+  if (!d.line) { openFile(path); toast('This message has no line number, so the file was opened without a jump.'); return; }
+  goToSource(path, d.line);
+});
+
+/* ============================== compile progress ============================== */
+// The engine has no progress API, but every line its worker prints during a compile passes through
+// runner.reportDownloadProgress(), so we watch for the "$ busytex ..." lines (one per TeX/BibTeX pass)
+// and estimate how many passes are still to come from the project settings and the last compile.
+const cp = { active: false, t0: 0, planned: 2, done: 0, open: false, stepT: 0, lastStepMs: 2500, stage: 0, dl: 0, pct: 0, timer: 0 };
+function cpStart() {
+  const bib = !!(proj.bibtex && hasBib(proj));
+  let saved = 0;
+  try { saved = +localStorage.getItem('latexViewer:passMs:' + proj.id) || 0; } catch (e) { /* ignore */ }
+  Object.assign(cp, {
+    active: true, t0: performance.now(), done: 0, open: false, stage: 0, dl: 0, pct: 0,
+    planned: (proj.rerun ? 3 : 2) + (bib ? 2 : 0) + (proj.engine === 'xelatex' ? 1 : 0),
+    lastStepMs: saved || 2500,
+  });
+  clearInterval(cp.timer);
+  cp.timer = setInterval(cpRender, 120);
+  cpRender();
+}
+function cpCloseStep(now) { cp.open = false; cp.done++; cp.lastStepMs = Math.max(300, now - cp.stepT); }
+function cpMessage(msg) {
+  if (!cp.active || typeof msg !== 'string') return;
+  const now = performance.now();
+  if (msg.startsWith('$ busytex ')) {
+    if (cp.open) cpCloseStep(now);
+    cp.open = true; cp.stepT = now;
+    if (cp.done + 1 >= cp.planned) cp.planned = cp.done + 2;      // there is always at least one more stage than we have seen
+  } else if (msg.startsWith('$ echo $?')) {
+    if (cp.open) cpCloseStep(now);
+  } else if (msg.startsWith('New compilation started')) cp.stage = Math.max(cp.stage, 4);
+  else if (msg.startsWith('TeX packages:')) cp.stage = Math.max(cp.stage, 8);
+}
+function cpPercent() {
+  const now = performance.now();
+  let pct = cp.stage;
+  if (cp.dl > 0 && cp.dl < 100) pct = Math.max(pct, cp.dl * 0.1);
+  if (cp.done > 0 || cp.open) {
+    const frac = cp.open ? Math.min(0.92, (now - cp.stepT) / cp.lastStepMs) : 0;
+    pct = Math.max(pct, 10 + (87 * (cp.done + frac)) / cp.planned);
+  }
+  cp.pct = Math.max(cp.pct, Math.min(97, pct));      // never goes backwards, never claims 100% before the result is in
+  return cp.pct;
+}
+function cpRender() {
+  if (!cp.active) return;
+  const p = Math.round(cpPercent());
+  setStatus('busy', `Compiling… ${p}%`);
+  $('progressBar').style.width = `${p}%`;
+  $('compileBtn').textContent = `Compiling ${p}%`;
+}
+function cpStop() {
+  if (!cp.active) return;
+  clearInterval(cp.timer);
+  const passes = Math.max(1, cp.done);
+  try { localStorage.setItem('latexViewer:passMs:' + (proj ? proj.id : 'x'), String(Math.round((performance.now() - cp.t0) / passes))); } catch (e) { /* ignore */ }
+  cp.active = false;
+  $('progressBar').style.width = '100%';
+  $('compileBtn').textContent = 'Compile';
+}
+
+/* ============================== compile ============================== */
+async function compile() {
+  if (!runner || !proj || !Object.keys(engines).length) return;
+  if (compiling) { queuedRecompile = true; return; }
+  const main = proj.mainFile;
+  if (!main || !proj.files[main] || proj.files[main].t !== 'text') {
+    setStatus('err', 'No main .tex file. Add one, or pick it in "Main file".');
+    return;
+  }
+  compiling = true;
+  const pid = proj.id;
+  const t0 = performance.now();
+  $('compileBtn').disabled = true;
+  cpStart();
+  $('compileTime').textContent = '';
+  $('logText').textContent = '';
+  await saveNow();
+
+  // everything except the main file is passed along as an additional file
+  const additionalFiles = [];
+  for (const [path, f] of Object.entries(proj.files)) {
+    if (path === main) continue;
+    additionalFiles.push({ path, content: f.t === 'text' ? f.c : f.c.slice() });
+  }
+  const opts = {
+    input: proj.files[main].c,
+    additionalFiles,
+    bibtex: !!proj.bibtex && hasBib(proj),
+    rerun: !!proj.rerun,
+  };
+  const engineKey = proj.engine;
+
+  try {
+    const result = await engines[engineKey].compile(opts);
+    cpStop();
+    const stillHere = proj && proj.id === pid;
+    // The engine reports success unless the output matches a short list of messages, and returns an empty
+    // array when there is no PDF, so judge by the PDF itself and by what the TeX log actually says.
+    const hasPdf = !!(result.success && result.pdf && result.pdf.length > 200);
+    const found = collectDiagnostics(result);
+    if (stillHere) {
+      diags = found;
+      $('logText').textContent = result.log || '';
+      renderProblems(); updateLogBadge();
+    }
+    const nErr = found.filter((d) => d.sev === 'error').length;
+    const nWarn = found.filter((d) => d.sev === 'warning').length;
+    const firstErr = found.find((d) => d.sev === 'error');
+    if (hasPdf) {
+      const sx = cleanSync(result.synctex);
+      await pdfPut({ id: pid, pdf: result.pdf, synctex: sx, at: Date.now() }).catch(() => {});
+      if (stillHere) {
+        syncRaw = sx; syncData = null;
+        if (!sx) console.warn('[SyncTeX] engine returned no SyncTeX data for', engineKey);
+        showPdf(result.pdf);
+        if (nErr) { setStatus('err', `PDF built, but with ${nErr} error${nErr === 1 ? '' : 's'}: ${firstErr.msg}`); setLogTab('problems'); setLogOpen(true); }
+        else setStatus('ok', nWarn ? `Compiled with ${nWarn} warning${nWarn === 1 ? '' : 's'}. Open the log to see them.` : 'Compiled successfully.');
+        $('compileTime').textContent = `${((performance.now() - t0) / 1000).toFixed(1)} s`;
+      }
+    } else if (stillHere) {
+      setStatus('err', firstErr ? `Compile failed: ${firstErr.msg}` : 'Compile failed: TeX did not produce a PDF. Open the log for details.');
+      setLogTab(found.length ? 'problems' : 'raw');
+      setLogOpen(true);
+    }
+  } catch (err) {
+    console.error(err);
+    if (proj && proj.id === pid) {
+      $('logText').textContent = String(err && err.message ? err.message : err);
+      diags = [{ sev: 'error', msg: String(err && err.message ? err.message : err), file: null, line: null, ctx: '' }];
+      renderProblems(); updateLogBadge(); setLogTab('problems');
+      setStatus('err', 'Compile error. Open the log for details.');
+      setLogOpen(true);
+    }
+  } finally {
+    cpStop();
+    compiling = false;
+    if (proj) $('compileBtn').disabled = false;
+    if (queuedRecompile) { queuedRecompile = false; if (proj) compile(); }
+  }
+}
+
+function scheduleAutoCompile(immediate = false) {
+  if (!$('autoCompile').checked || !proj) return;
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(compile, immediate ? 200 : 1400);
+}
+
+/* ============================== cloud sync (optional) ============================== */
+// Local IndexedDB stays the source of truth (works offline). When signed in, each project is mirrored to
+// Firestore under latexEditor/{uid}/projects/{projectId}, one document per file. All Firestore access goes
+// through `fb.api`, so the merge logic below never touches the SDK directly.
+const FB_VERSION = '11.10.0';
+const MAX_DOC_BYTES = 900000;                 // Firestore documents are capped at 1 MiB
+const PENDING_DELETES_KEY = 'latexViewer:pendingDeletes';
+const sync = { status: 'off', msg: '', last: 0 };
+const fb = { user: null, api: null, auth: null, db: null, mods: null, loading: null };
+const pushedSigs = new Map();                 // projectId -> Map(fileDocId -> content signature)
+const remoteIds = new Map();                  // projectId -> Set(fileDocId) known to exist remotely
+let syncing = false, syncAgain = false, syncTimer = null, allTimer = null, lastFull = 0, lastErrMsg = '';
+
+/* ---- small helpers ---- */
+function hashStr(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return (h >>> 0).toString(36) + ':' + s.length;
+}
+function bytesToB64(u8) {
+  let s = '';
+  for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+function b64ToBytes(b) {
+  const bin = atob(b), u = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  return u;
+}
+const fileDocId = (path) => 'f_' + encodeURIComponent(path);
+function fileToDoc(path, f) {
+  const content = f.t === 'text' ? f.c : bytesToB64(f.c);
+  return { id: fileDocId(path), path, kind: f.t === 'text' ? 'text' : 'bin', content, size: f.t === 'text' ? new Blob([content]).size : content.length };
+}
+const docToFile = (d) => (d.kind === 'text' ? { t: 'text', c: d.content } : { t: 'bin', c: b64ToBytes(d.content) });
+const sigOf = (d) => hashStr(`${d.path}\0${d.kind}\0${d.content}`);
+const getPending = () => { try { return JSON.parse(localStorage.getItem(PENDING_DELETES_KEY) || '[]'); } catch (e) { return []; } };
+const setPending = (a) => { try { localStorage.setItem(PENDING_DELETES_KEY, JSON.stringify(a)); } catch (e) { /* ignore */ } };
+function queueRemoteDelete(id) {
+  const a = getPending();
+  if (!a.includes(id)) { a.push(id); setPending(a); }
+  scheduleSyncAll(300);
+}
+
+/* ---- status UI (never silent: problems stay visible on the button and in a toast) ---- */
+function renderSyncUI() {
+  const when = new Date(sync.last).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  const map = {
+    off: ['Set up sync', 's-off'], signedout: ['Sign in to sync', 's-off'], busy: ['Syncing…', 's-busy'],
+    ok: [`Synced ${when}`, 's-ok'], err: ['Sync problem', 's-err'],
+  };
+  const [label, cls] = map[sync.status] || map.off;
+  document.querySelectorAll('.sync-btn').forEach((b) => {
+    b.className = `sync-btn ${cls}`;
+    b.querySelector('.sync-label').textContent = label;
+    b.title = sync.msg || label;
+  });
+  if (proj && !dirty && sync.status === 'ok') setSaveState('Saved and synced');
+}
+function setSync(status, msg = '') {
+  sync.status = status; sync.msg = msg;
+  if (status === 'ok') { sync.last = Date.now(); lastErrMsg = ''; }
+  renderSyncUI();
+}
+function syncErrorMessage(e) {
+  const code = (e && e.code) || '';
+  if (code === 'permission-denied') return 'Firestore refused the request. Check the security rules and that SYNC_ALLOWED_EMAIL matches your Google account.';
+  if (code === 'auth/unauthorized-domain') return `Add ${location.hostname} under Firebase, Authentication, Settings, Authorized domains.`;
+  if (code === 'unavailable' || code === 'auth/network-request-failed' || !navigator.onLine) return 'Offline or unreachable. Sync will retry when the connection returns.';
+  if (code === 'resource-exhausted') return 'The Firebase daily quota has been reached. Sync resumes tomorrow.';
+  if (code === 'unauthenticated') return 'Your sign-in expired. Sign in again.';
+  return `Sync failed: ${(e && e.message) || e}`;
+}
+function handleSyncError(e) {
+  console.error('sync error', e);
+  const msg = syncErrorMessage(e);
+  setSync('err', msg);
+  if (msg !== lastErrMsg) { toast(msg, 9000); lastErrMsg = msg; }
+}
+
+/* ---- project <-> Firestore ---- */
+async function fetchRemoteFiles(id) {
+  const docs = await fb.api.listFileDocs(id);
+  const files = {};
+  docs.forEach((d) => { files[d.path] = docToFile(d); });
+  return { docs, files };
+}
+
+async function markSynced(id, remoteUpdated) {
+  if (proj && proj.id === id) { proj.sync = { remoteUpdated }; await dbPut(proj); return; }
+  const cur = await dbGet(id);
+  if (cur) { cur.sync = { remoteUpdated }; await dbPut(cur); }
+}
+
+async function pushProject(l) {
+  const api = fb.api, id = l.id, pushedUpdated = l.updated;
+  const sigs = pushedSigs.get(id) || new Map();
+  pushedSigs.set(id, sigs);
+  const puts = [], keep = new Set(), tooBig = [];
+  // snapshot synchronously so edits made while the network call is in flight are not half-pushed
+  for (const [path, f] of Object.entries(l.files)) {
+    const d = fileToDoc(path, f);
+    if (d.size > MAX_DOC_BYTES) { tooBig.push(path); continue; }
+    keep.add(d.id);
+    const sig = sigOf(d);
+    if (sigs.get(d.id) !== sig) puts.push({ id: d.id, path: d.path, kind: d.kind, content: d.content, sig });
+  }
+  const meta = {
+    name: l.name, created: l.created, updated: pushedUpdated, engine: l.engine, bibtex: !!l.bibtex, rerun: !!l.rerun,
+    mainFile: l.mainFile || null, folders: [...l.folders], deleted: false, tooBig,
+  };
+  let known = remoteIds.get(id);
+  if (!known) known = new Set((await api.listFileDocs(id)).map((x) => x.id));
+  const dels = [...known].filter((x) => !keep.has(x));
+  await api.commitFiles(id, puts.map(({ sig, ...rest }) => rest), dels);
+  puts.forEach((p) => sigs.set(p.id, p.sig));
+  dels.forEach((x) => sigs.delete(x));
+  remoteIds.set(id, keep);
+  await api.setProjectDoc(id, meta);   // written last, so other devices only see the new version once its files are in place
+  await markSynced(id, pushedUpdated);
+  if (tooBig.length) toast(`Not synced because they are too large: ${tooBig.join(', ')}. They stay on this device.`, 9000);
+  return true;
+}
+
+async function pullProject(id, r, existing) {
+  const startUpdated = existing ? existing.updated : null;
+  const { docs, files } = await fetchRemoteFiles(id);
+  if (existing) {
+    for (const [p, f] of Object.entries(existing.files)) {
+      if (!(p in files) && fileToDoc(p, f).size > MAX_DOC_BYTES) files[p] = f;   // oversize files never sync; don't delete them locally
+    }
+  }
+  const isOpen = proj && proj.id === id;
+  if (isOpen && (dirty || proj.updated !== startUpdated)) return false;          // you typed while this was downloading; retry
+  const p = {
+    id, name: r.name, created: r.created, updated: r.updated, engine: r.engine || 'pdflatex', bibtex: !!r.bibtex, rerun: !!r.rerun,
+    mainFile: r.mainFile || null, folders: r.folders || [], files, sync: { remoteUpdated: r.updated },
+  };
+  if (!p.mainFile) p.mainFile = detectMain(files);
+  await dbPut(p);
+  await tx('pdfs', 'readwrite', (s) => s.delete(id)).catch(() => {});
+  const sigs = new Map();
+  docs.forEach((d) => sigs.set(d.id, sigOf(d)));
+  pushedSigs.set(id, sigs);
+  remoteIds.set(id, new Set(docs.map((d) => d.id)));
+  if (isOpen) { await openProject(id); toast('Updated from another device.'); }
+  return true;
+}
+
+async function resolveConflict(l, r) {
+  const { files } = await fetchRemoteFiles(l.id);
+  const copy = {
+    id: uid(), name: `${r.name} (copy from another device)`, created: r.created, updated: r.updated,
+    engine: r.engine || 'pdflatex', bibtex: !!r.bibtex, rerun: !!r.rerun, mainFile: r.mainFile || detectMain(files),
+    folders: r.folders || [], files,
+  };
+  await dbPut(copy);            // no sync marker, so the next pass uploads it as its own project
+  await pushProject(l);         // this device's version continues as the main one
+  syncAgain = true;
+  toast(`"${l.name}" was edited on two devices. This version is kept, and the other was saved as "${copy.name}".`, 10000);
+  return true;
+}
+
+async function removeLocal(id) {
+  await dbDelete(id);
+  pushedSigs.delete(id); remoteIds.delete(id);
+  if (proj && proj.id === id) { dirty = false; location.hash = ''; toast('This project was deleted on another device.'); }
+  return true;
+}
+
+async function reconcile(id, l, r) {
+  if (r && r.deleted) {
+    if (l && l.updated > r.updated) return pushProject(l);   // edited here after it was deleted elsewhere: restore it
+    if (l) return removeLocal(id);
+    return true;
+  }
+  if (!r) return l ? pushProject(l) : true;
+  if (!l) return pullProject(id, r, null);
+  if (l.updated === r.updated) {
+    if (!l.sync || l.sync.remoteUpdated !== r.updated) await markSynced(id, r.updated);
+    return true;
+  }
+  const base = l.sync ? l.sync.remoteUpdated : 0;
+  const localChanged = l.updated > base, remoteChanged = r.updated > base;
+  if (remoteChanged && localChanged) return resolveConflict(l, r);
+  if (remoteChanged) return pullProject(id, r, l);
+  if (localChanged) return pushProject(l);
+  return true;
+}
+
+async function remoteDeleteProject(id) {
+  const docs = await fb.api.listFileDocs(id);
+  await fb.api.commitFiles(id, [], docs.map((d) => d.id));
+  await fb.api.setProjectDoc(id, { deleted: true, updated: Date.now(), name: '', folders: [], tooBig: [] });
+  pushedSigs.delete(id); remoteIds.delete(id);
+}
+async function processPendingDeletes() {
+  let list = getPending();
+  for (const id of [...list]) {
+    await remoteDeleteProject(id);
+    list = list.filter((x) => x !== id);
+    setPending(list);
+  }
+}
+
+async function localFor(id) {
+  if (proj && proj.id === id) return proj;
+  return (await dbGet(id)) || null;
+}
+
+async function syncAll() {
+  if (!fb.api) return;
+  if (syncing) { syncAgain = true; return; }
+  syncing = true; syncAgain = false;
+  setSync('busy', 'Syncing…');
+  try {
+    if (proj) await saveNow();
+    await processPendingDeletes();
+    const remote = await fb.api.listProjectDocs();
+    const ids = new Set([...remote.keys(), ...(await dbAll()).map((p) => p.id)]);
+    for (const id of ids) {
+      const ok = await reconcile(id, await localFor(id), remote.get(id) || null);
+      if (ok === false) syncAgain = true;
+    }
+    lastFull = Date.now();
+    setSync('ok');
+    if (!$('dashboard').hidden) renderDashboard();
+  } catch (e) {
+    syncAgain = false;
+    handleSyncError(e);
+  } finally {
+    syncing = false;
+    if (syncAgain) { syncAgain = false; setTimeout(syncAll, 400); }
+  }
+}
+async function syncOne(id) {
+  if (!fb.api) return;
+  if (syncing) { syncAgain = true; return; }
+  syncing = true; syncAgain = false;
+  setSync('busy', 'Syncing…');
+  try {
+    const l = await localFor(id);
+    if (l) {
+      const ok = await reconcile(id, l, await fb.api.getProjectDoc(id));
+      if (ok === false) syncAgain = true;
+    }
+    setSync('ok');
+  } catch (e) {
+    syncAgain = false;
+    handleSyncError(e);
+  } finally {
+    syncing = false;
+    if (syncAgain) { syncAgain = false; setTimeout(syncAll, 400); }
+  }
+}
+function scheduleSyncOne(id, delay = 5000) {
+  if (!fb.api) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => syncOne(id), delay);
+}
+function scheduleSyncAll(delay = 400, minGap = 0) {
+  if (!fb.api) return;
+  if (minGap && Date.now() - lastFull < minGap) return;
+  clearTimeout(allTimer);
+  allTimer = setTimeout(syncAll, delay);
+}
+
+/* ---- Firestore adapter + sign-in ---- */
+function makeFirestoreApi(fs, db, uid) {
+  const P = (...more) => ['latexEditor', uid, 'projects', ...more];
+  return {
+    async probe() {
+      const ref = fs.doc(db, 'latexEditor', uid, 'meta', 'probe');
+      await fs.setDoc(ref, { t: Date.now() });
+      const snap = await fs.getDoc(ref);
+      if (!snap.exists()) throw Object.assign(new Error('Firestore accepted a write but returned nothing when read back.'), { code: 'probe-failed' });
+    },
+    async listProjectDocs() {
+      const snap = await fs.getDocs(fs.collection(db, ...P()));
+      const m = new Map();
+      snap.forEach((d) => m.set(d.id, d.data()));
+      return m;
+    },
+    async getProjectDoc(id) {
+      const s = await fs.getDoc(fs.doc(db, ...P(id)));
+      return s.exists() ? s.data() : null;
+    },
+    async setProjectDoc(id, data) { await fs.setDoc(fs.doc(db, ...P(id)), data); },
+    async listFileDocs(id) {
+      const snap = await fs.getDocs(fs.collection(db, ...P(id, 'files')));
+      const out = [];
+      snap.forEach((d) => { const x = d.data(); out.push({ id: d.id, path: x.path, kind: x.kind, content: x.content }); });
+      return out;
+    },
+    async commitFiles(id, puts, deleteIds) {
+      const ops = [...puts.map((p) => ({ put: p })), ...deleteIds.map((x) => ({ del: x }))];
+      let i = 0;
+      while (i < ops.length) {
+        const batch = fs.writeBatch(db);
+        let n = 0, bytes = 0;
+        while (i < ops.length && n < 400 && bytes < 6000000) {
+          const op = ops[i++];
+          if (op.put) { batch.set(fs.doc(db, ...P(id, 'files', op.put.id)), { path: op.put.path, kind: op.put.kind, content: op.put.content }); bytes += op.put.content.length; }
+          else batch.delete(fs.doc(db, ...P(id, 'files', op.del)));
+          n++;
+        }
+        await batch.commit();
+      }
+    },
+  };
+}
+
+async function loadFirebase() {
+  if (!fb.loading) {
+    fb.loading = (async () => {
+      const base = `https://www.gstatic.com/firebasejs/${FB_VERSION}/`;
+      const [app, auth, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
+      return { app, auth, fs };
+    })();
+  }
+  return fb.loading;
+}
+
+async function onAuthChange(user) {
+  if (!user) { fb.user = null; fb.api = null; setSync('signedout'); return; }
+  const allowed = (SYNC_ALLOWED_EMAIL || '').trim().toLowerCase();
+  if (allowed && (user.email || '').toLowerCase() !== allowed) {
+    await fb.mods.auth.signOut(fb.auth);
+    handleSyncError(new Error(`${user.email} is not the account this editor is set up for.`));
+    return;
+  }
+  fb.user = user;
+  setSync('busy', 'Checking Firestore access…');
+  const api = makeFirestoreApi(fb.mods.fs, fb.db, user.uid);
+  try { await api.probe(); }       // fail loudly now rather than silently losing data later
+  catch (e) { fb.api = null; handleSyncError(e); return; }
+  fb.api = api;
+  syncAll();
+}
+
+async function initSync() {
+  if (!FIREBASE_CONFIG) { setSync('off'); return; }
+  setSync('busy', 'Connecting…');
+  try {
+    const m = await loadFirebase();
+    const app = m.app.initializeApp(FIREBASE_CONFIG);
+    fb.mods = m; fb.auth = m.auth.getAuth(app); fb.db = m.fs.getFirestore(app);
+    m.auth.onAuthStateChanged(fb.auth, onAuthChange);
+  } catch (e) {
+    fb.loading = null;
+    handleSyncError(Object.assign(new Error('Could not load Firebase. Check your connection and the config.'), { code: e && e.code }));
+  }
+}
+
+async function signIn() {
+  if (!fb.auth) { await initSync(); if (!fb.auth) return; }
+  const { auth } = fb.mods;
+  try {
+    await auth.signInWithPopup(fb.auth, new auth.GoogleAuthProvider());
+  } catch (e) {
+    if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') return;
+    if (e.code === 'auth/popup-blocked') { await auth.signInWithRedirect(fb.auth, new auth.GoogleAuthProvider()); return; }
+    handleSyncError(e);
+  }
+}
+
+function openInfo(title, html) {
+  return new Promise((resolve) => {
+    const root = $('modalRoot');
+    root.innerHTML = `<div class="overlay"><div class="dialog wide" role="dialog" aria-modal="true" aria-label="${esc(title)}"><h3>${esc(title)}</h3><div class="info">${html}</div><div class="dlg-btns"><button id="infoOk" class="primary">Close</button></div></div></div>`;
+    const close = () => { root.innerHTML = ''; document.removeEventListener('keydown', onKey, true); resolve(); };
+    const onKey = (e) => { if (e.key === 'Escape') { e.preventDefault(); close(); } };
+    document.addEventListener('keydown', onKey, true);
+    $('infoOk').onclick = close;
+    root.querySelector('.overlay').addEventListener('mousedown', (e) => { if (e.target.classList.contains('overlay')) close(); });
+    $('infoOk').focus();
+  });
+}
+function openSetupHelp() {
+  return openInfo('Set up cloud sync', `
+    <p>Cloud sync keeps your projects on Firebase so they follow you across devices. It is optional; everything works offline without it.</p>
+    <ol>
+      <li>In the Firebase console, open the project you use for your dashboard (or create one) and add a <b>Web app</b>. Copy its config.</li>
+      <li>Paste the config into <code>FIREBASE_CONFIG</code> near the top of this file, and put your Google account email in <code>SYNC_ALLOWED_EMAIL</code>.</li>
+      <li>Authentication, Sign-in method: enable <b>Google</b>. Authentication, Settings, Authorized domains: add <code>${esc(location.hostname)}</code>.</li>
+      <li>Firestore Database, Rules: add this block inside <code>match /databases/{database}/documents</code>, keeping your existing rules, then publish.</li>
+    </ol>
+    <pre>match /latexEditor/{uid}/{document=**} {
+  allow read, write: if request.auth != null
+    &amp;&amp; request.auth.uid == uid
+    &amp;&amp; request.auth.token.email == 'YOUR_EMAIL';
+}</pre>
+    <p>Use your real email in the rule. When you sign in, the editor tests write access straight away and shows a red "Sync problem" message if the rules reject it, so a mistake here can't lose data quietly.</p>`);
+}
+
+async function onSyncClick() {
+  if (!FIREBASE_CONFIG) return openSetupHelp();
+  if (!fb.auth) return initSync();
+  if (!fb.user) return signIn();
+  if (sync.status === 'err') { if (!fb.api) return onAuthChange(fb.user); return syncAll(); }
+  const r = await openDialog({
+    title: 'Cloud sync', message: `Signed in as ${fb.user.email}.`, ok: 'Continue',
+    options: [
+      { value: 'now', label: 'Sync now', desc: 'Upload local changes and download changes from other devices.' },
+      { value: 'out', label: 'Sign out', desc: 'Stop syncing. Your projects stay on this device.' },
+    ],
+  });
+  if (!r) return;
+  if (r.option === 'now') syncAll();
+  else { await fb.mods.auth.signOut(fb.auth); toast('Signed out. Projects remain on this device.'); }
+}
+document.querySelectorAll('.sync-btn').forEach((b) => b.addEventListener('click', onSyncClick));
+document.addEventListener('visibilitychange', () => { if (!document.hidden) scheduleSyncAll(300, 20000); });
+window.addEventListener('online', () => scheduleSyncAll(500));
+
+/* ============================== theme ============================== */
+function applyTheme(t) {
+  document.documentElement.dataset.theme = t;
+  try { localStorage.setItem('latexViewer:theme', t); } catch (e) { /* ignore */ }
+  document.querySelectorAll('.theme-btn').forEach((b) => { b.textContent = t === 'dark' ? 'Light theme' : 'Dark theme'; });
+}
+document.querySelectorAll('.theme-btn').forEach((b) => b.addEventListener('click', () => {
+  applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+}));
+applyTheme(document.documentElement.dataset.theme || 'dark');
+
+/* ============================== start ============================== */
+async function migrateLegacy() {
+  // Earlier single-document version kept its source in localStorage.
+  try {
+    const legacy = localStorage.getItem('latexViewer:source');
+    if (legacy && !(await dbAll()).length) {
+      await dbPut(makeProject('Imported document', { 'main.tex': T(legacy) }));
+    }
+    if (legacy) localStorage.removeItem('latexViewer:source');
+  } catch (e) { console.warn('Legacy import skipped', e); }
+}
+
+(async () => {
+  await migrateLegacy();
+  route();
+  boot();
+  initSync();
+})();
+</script>
+</body>
+</html>
