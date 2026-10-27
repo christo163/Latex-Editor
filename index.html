@@ -517,8 +517,22 @@ const JSZIP_URL = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm';
 // To sync across devices, paste your Firebase web-app config here, e.g.
 //   const FIREBASE_CONFIG = { apiKey: '...', authDomain: '...firebaseapp.com', projectId: '...', appId: '...' };
 // and put your Google account email below. Click "Set up sync" in the app for the full checklist.
-const FIREBASE_CONFIG = null;
-const SYNC_ALLOWED_EMAIL = '';
+const firebaseConfig = {
+
+  apiKey: "AIzaSyBvKl-HWnp26muF-vkJRl3SR4AZnghBoe4",
+
+  authDomain: "majar-latex-editor.firebaseapp.com",
+
+  projectId: "majar-latex-editor",
+
+  storageBucket: "majar-latex-editor.firebasestorage.app",
+
+  messagingSenderId: "466524450002",
+
+  appId: "1:466524450002:web:7f5e430e9cdd631aff110b"
+
+};
+const SYNC_ALLOWED_EMAIL = 'jerom.christopher@gmail.com';
 
 /* ============================== utilities ============================== */
 const $ = (id) => document.getElementById(id);
