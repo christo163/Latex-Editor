@@ -328,7 +328,7 @@
     --hl-env: #7b3fb3; --hl-brace: #6a7596; --hl-special: #c6282d;
   }
   .t-k { color: var(--hl-cmd); }
-  .t-c { color: var(--hl-comment); font-style: italic; }
+  .t-c { color: var(--hl-comment); font-: italic; }
   .t-m { color: var(--hl-math); }
   .t-mk { color: var(--hl-mathcmd); }
   .t-e { color: var(--hl-env); }
@@ -375,6 +375,130 @@
   .info li { margin-bottom: 6px; }
   .info code { background: var(--editor-bg); padding: 1px 5px; border-radius: 4px; font-family: var(--font-mono); font-size: 12px; color: var(--text); }
   .info pre { background: var(--editor-bg); padding: 12px; border-radius: 6px; overflow-x: auto; font-family: var(--font-mono); font-size: 12px; color: var(--text); margin: 0 0 12px; }
+  /* =====================================================================
+     NEUMORPHIC THEME  (paste this block at the very end of the style section, above the closing style tag)
+     Soft surfaces: every panel shares the page colour and is shaped by a
+     light shadow (top-left) and a dark shadow (bottom-right).
+     Raised = clickable or container. Inset = field, editor, pressed state.
+     Works with the existing Light / Dark toggle.
+     ===================================================================== */
+  :root, :root[data-theme="dark"] {
+    --bg: #232a3b; --panel: #232a3b; --panel-2: #2a3247; --border: #2f3850;
+    --text: #e7ebf6; --text-dim: #9aa6c6;
+    --accent: #7aa2ff; --accent-hover: #9bb8ff; --accent-ink: #0b1330;
+    --editor-bg: #1f2535; --gutter: #66739b; --grid: transparent; --pdf-bg: #1a1f2d;
+    --nm-hi: #2e374e; --nm-lo: #161b28;
+  }
+  :root[data-theme="light"] {
+    --bg: #e4e9f2; --panel: #e4e9f2; --panel-2: #dbe1ec; --border: #cdd5e3;
+    --text: #18203a; --text-dim: #566280;
+    --accent: #2a56d6; --accent-hover: #1f44b0; --accent-ink: #ffffff;
+    --editor-bg: #eaeef6; --gutter: #7c88a8; --grid: transparent; --pdf-bg: #d3d9e6;
+    --nm-hi: #ffffff; --nm-lo: #b3bdd1;
+  }
+  :root {
+    --nm-raise: 6px 6px 14px var(--nm-lo), -6px -6px 14px var(--nm-hi);
+    --nm-raise-lg: 9px 9px 20px var(--nm-lo), -9px -9px 20px var(--nm-hi);
+    --nm-raise-sm: 3px 3px 7px var(--nm-lo), -3px -3px 7px var(--nm-hi);
+    --nm-inset: inset 5px 5px 10px var(--nm-lo), inset -5px -5px 10px var(--nm-hi);
+    --nm-inset-sm: inset 2px 2px 5px var(--nm-lo), inset -2px -2px 5px var(--nm-hi);
+    scrollbar-width: thin; scrollbar-color: var(--nm-lo) transparent;
+  }
+  * { scrollbar-width: thin; scrollbar-color: var(--nm-lo) transparent; }
+  input[type=checkbox], input[type=radio] { accent-color: var(--accent); }
+  .wordmark { text-shadow: 1px 1px 2px var(--nm-hi); }
+
+  /* ---- buttons and selects ---- */
+  select, button, input[type=file]::file-selector-button {
+    background: var(--bg); color: var(--text); border: none; border-radius: 10px;
+    box-shadow: var(--nm-raise-sm); transition: box-shadow .15s ease, color .15s ease;
+  }
+  button:hover:not(:disabled) { border-color: transparent; color: var(--accent); }
+  button:active:not(:disabled) { box-shadow: var(--nm-inset-sm); }
+  button:disabled { box-shadow: none; }
+  button.primary { background: var(--accent); color: var(--accent-ink); border: none; }
+  button.primary:hover:not(:disabled) { background: var(--accent-hover); color: var(--accent-ink); }
+  button.primary:active:not(:disabled) { box-shadow: inset 2px 2px 5px rgba(0,0,0,.32), inset -2px -2px 5px rgba(255,255,255,.18); }
+  button.danger { border: none; }
+  .pactions button, #logBtn, #fwdBtn, .sync-btn, #logTabs button { background: var(--bg); border: none; }
+  #logTabs button.on { background: var(--bg); color: var(--accent); box-shadow: var(--nm-inset-sm); font-weight: 600; }
+  .tact button { background: transparent; box-shadow: none; border-radius: 6px; }
+  .tact button:hover:not(:disabled) { background: transparent; box-shadow: var(--nm-raise-sm); }
+  .sync-btn.s-err, #logBtn.alert { color: var(--err); box-shadow: var(--nm-raise-sm), 0 0 0 1px var(--err); }
+  #logBtn.warnb { color: var(--warn); box-shadow: var(--nm-raise-sm), 0 0 0 1px var(--warn); }
+
+  /* ---- fields ---- */
+  input.txt, input.search {
+    background: var(--bg); border: none; border-radius: 12px; padding: 9px 14px; box-shadow: var(--nm-inset-sm);
+  }
+  input.search { border-radius: 999px; }
+  #projectName { border: none; border-radius: 10px; }
+  #projectName:hover, #projectName:focus { background: var(--bg); box-shadow: var(--nm-inset-sm); }
+
+  /* ---- dashboard ---- */
+  .dash-head { background: var(--bg); border-bottom: none; position: relative; z-index: 2; box-shadow: 0 8px 14px -10px var(--nm-lo); }
+  .dash-body { background-image: none; }
+  .strip, .card { background: var(--bg); border: none; border-radius: 20px; box-shadow: var(--nm-raise); }
+  .strip { padding: 20px 24px; }
+  .card:hover { border: none; box-shadow: var(--nm-raise-lg); }
+  .peek { background: var(--editor-bg); border-bottom: none; margin: 10px 10px 0; border-radius: 14px; box-shadow: var(--nm-inset-sm); height: 108px; }
+  .strip-open { border-radius: 10px; box-shadow: var(--nm-raise-sm); }
+  .empty { background: var(--bg); border: none; border-radius: 20px; box-shadow: var(--nm-inset); }
+
+  /* ---- workspace chrome ---- */
+  .ws-head { background: var(--bg); border-bottom: none; padding: 10px 16px; position: relative; z-index: 3; box-shadow: 0 8px 14px -10px var(--nm-lo); }
+  #status { background: var(--bg); border-bottom: none; }
+  #progressWrap { background: var(--bg); height: 4px; }
+  #progressBar { border-radius: 4px; }
+  #sidebar { background: var(--bg); border-right: none; position: relative; z-index: 2; box-shadow: 8px 0 14px -10px var(--nm-lo); }
+  .side-tools { border-bottom: none; padding: 10px; }
+  .side-hint { border-top: none; }
+  #tree { padding: 8px 4px; }
+  .trow { border-left: none; border-radius: 10px; margin: 2px 6px; }
+  .trow:hover { background: var(--bg); box-shadow: var(--nm-raise-sm); }
+  .trow.active { background: var(--bg); box-shadow: var(--nm-inset-sm); color: var(--accent); }
+
+  /* ---- editor and PDF panes ---- */
+  #tabBar { background: var(--bg); border-bottom: none; padding: 6px 6px 0; }
+  #tabs { gap: 8px; padding: 6px 8px 12px; min-height: 0; }
+  .tab { border-right: none; border-radius: 10px; background: var(--bg); box-shadow: var(--nm-raise-sm); }
+  .tab.active { background: var(--bg); color: var(--accent); box-shadow: var(--nm-inset-sm); }
+  #editorWrap, #binaryView, #noFile {
+    margin: 0 10px 10px; border-radius: 16px; background: var(--editor-bg); box-shadow: var(--nm-inset); overflow: hidden;
+  }
+  #gutter { border-right: none; }
+  #pdfBar { background: var(--bg); border-bottom: none; padding: 6px 12px; }
+  #pdfScroll, #pdfPlaceholder { margin: 0 10px 10px; border-radius: 16px; background: var(--pdf-bg); box-shadow: var(--nm-inset); }
+  #pdfFrame { margin: 0 10px 10px; border-radius: 16px; box-shadow: var(--nm-inset); }
+  #splitter { position: relative; width: 10px; background: transparent; }
+  #splitter:hover, #splitter.drag { background: transparent; }
+  #splitter::after {
+    content: ""; position: absolute; left: 3px; right: 3px; top: 50%; height: 56px; margin-top: -28px;
+    border-radius: 4px; background: var(--bg); box-shadow: var(--nm-raise-sm);
+  }
+  #splitter:hover::after, #splitter.drag::after { background: var(--accent); }
+
+  /* ---- log drawer ---- */
+  #logDrawer { background: var(--bg); border-left: none; box-shadow: -10px 0 24px var(--nm-lo); }
+  .drawer-head, #logTabs { border-bottom: none; }
+  #logText, #problemList { margin: 0 12px 12px; border-radius: 14px; background: var(--editor-bg); box-shadow: var(--nm-inset-sm); }
+  .prob:hover { background: var(--panel-2); }
+
+  /* ---- dialogs, notices, toast ---- */
+  .overlay { background: rgba(14, 18, 30, 0.55); backdrop-filter: blur(3px); }
+  .dialog { background: var(--bg); border: none; border-radius: 22px; box-shadow: var(--nm-raise), 0 24px 60px rgba(0, 0, 0, 0.3); }
+  .opt { border: none; border-radius: 14px; box-shadow: var(--nm-raise-sm); }
+  .opt:has(input:checked) { background: var(--bg); box-shadow: var(--nm-inset-sm); }
+  .opt:has(input:checked) b { color: var(--accent); }
+  .info code, .info pre, #setupNotice code, #setupNotice pre { box-shadow: var(--nm-inset-sm); }
+  #setupNotice { background: var(--bg); border: none; border-radius: 18px; box-shadow: var(--nm-raise), inset 4px 0 0 var(--err); }
+  #toast { background: var(--bg); border: none; border-radius: 14px; box-shadow: var(--nm-raise); }
+
+  @media (max-width: 860px) {
+    #sidebar { box-shadow: 0 8px 14px -10px var(--nm-lo); }
+    #splitter { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { button, select { transition: none; } }
 </style>
 </head>
 <body>
