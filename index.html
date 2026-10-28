@@ -13,6 +13,10 @@
     document.documentElement.dataset.theme = t;
   } catch (e) { document.documentElement.dataset.theme = 'dark'; }
 </script>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImZnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjNmY5NWZmIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMmY0ZmQwIi8+PC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTUiIGZpbGw9InVybCgjZmcpIi8+CiAgPHBhdGggZD0iTTMxIDE3LjVDMjUgMTQuNCAxNy41IDE0LjIgMTAuNSAxNi40VjQ3QzE3LjUgNDQuOCAyNSA0NS4xIDMxIDQ4LjNaIiBmaWxsPSIjZjdmOWZmIi8+CiAgPHBhdGggZD0iTTMzIDE3LjVDMzkgMTQuNCA0Ni41IDE0LjIgNTMuNSAxNi40VjQ3QzQ2LjUgNDQuOCAzOSA0NS4xIDMzIDQ4LjNaIiBmaWxsPSIjZGJlNGZmIi8+CiAgPHBhdGggZD0iTTI3LjYgMjRIMTcuNkwyMy4yIDMyTDE3LjYgNDBIMjcuNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMmY0ZmQwIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgogIDxwYXRoIGQ9Ik0zNy41IDI2LjVINDhNMzcuNSAzNEg0MiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjN2Y5NWQ2IiBzdHJva2Utd2lkdGg9IjMuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHJlY3QgeD0iNDQuMyIgeT0iMzAuNCIgd2lkdGg9IjMuOCIgaGVpZ2h0PSI3LjYiIHJ4PSIxLjQiIGZpbGw9IiNmNWI1NDEiLz4KPC9zdmc+Cg==" />
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+
 <title>MAJAЯ LaTeX Editor</title>
 <style>
   :root, :root[data-theme="dark"] {
@@ -499,6 +503,43 @@
     #splitter { display: none; }
   }
   @media (prefers-reduced-motion: reduce) { button, select { transition: none; } }
+  /* =====================================================================
+     BRAND + HEADER LAYOUT: logo and name on the left, search in the centre,
+     actions on the right. Paste at the very end of the style section.
+     ===================================================================== */
+  .dash-head { position: relative; }
+  .wordmark { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+  .brand-logo {
+    width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px;
+    filter: drop-shadow(3px 3px 6px var(--nm-lo)) drop-shadow(-2px -2px 5px var(--nm-hi));
+  }
+  .dash-head .spacer { flex: 1; }
+  @media (min-width: 1561px) {
+    .dash-head .search-wrap {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      flex: none; max-width: none; width: clamp(240px, calc(100vw - 1300px), 440px);
+    }
+  }
+  /* narrower screens: search drops to its own centred row so nothing overlaps */
+  @media (max-width: 1560px) {
+    .dash-head { flex-wrap: wrap; row-gap: 14px; }
+    .dash-head .search-wrap { order: 9; flex: 1 1 100%; max-width: none; }
+    .dash-head .search-wrap .search { display: block; max-width: 520px; margin: 0 auto; }
+  }
+  /* =====================================================================
+     LIGHT THEME: PARCHMENT & AMBER. Paste at the very end of the style
+     section, after the neumorphic block and the brand/layout block.
+     Only the light theme is changed; the dark theme stays exactly as it is.
+     ===================================================================== */
+  :root[data-theme="light"] {
+    --bg: #ece5d8; --panel: #ece5d8; --panel-2: #e3dbcb; --border: #d6ccb9;
+    --text: #2a2218; --text-dim: #6a5d4b;
+    --accent: #8a5000; --accent-hover: #6f4000; --accent-ink: #ffffff;
+    --editor-bg: #f1ebe0; --pdf-bg: #ddd4c4; --gutter: #9a8c76; --grid: transparent;
+    --nm-hi: #fffaf0; --nm-lo: #c4b9a5;
+    --hl-cmd: #2f4fb5; --hl-math: #9a5a00; --hl-mathcmd: #7a4a00; --hl-env: #7b3fb3;
+    --hl-comment: #8a7f6c; --hl-brace: #7d705c;
+  }
 </style>
 </head>
 <body>
@@ -507,7 +548,7 @@
   <!-- ============ DASHBOARD ============ -->
   <section id="dashboard">
     <div class="dash-head">
-      <h1 class="wordmark" aria-label="MAJAR LaTeX Editor">MAJA<span class="mirror-r" aria-hidden="true">R</span> LaTeX Editor</h1>
+      <h1 class="wordmark" aria-label="MAJAR LaTeX Editor"><svg class="brand-logo" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="mj-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6f95ff"/><stop offset="1" stop-color="#2f4fd0"/></linearGradient></defs><rect width="64" height="64" rx="15" fill="url(#mj-bg)"/><path d="M31 19.5C25.5 16.6 18.5 16.4 12.5 18.4V46C18.5 44 25.5 44.3 31 47.2Z" fill="#f7f9ff"/><path d="M33 19.5C38.5 16.6 45.5 16.4 51.5 18.4V46C45.5 44 38.5 44.3 33 47.2Z" fill="#dbe4ff"/><path d="M10.5 49C18 46.6 25.8 47 32 50.4C38.2 47 46 46.6 53.5 49" fill="none" stroke="#dbe4ff" stroke-width="2.6" stroke-linecap="round"/><path d="M27.4 25H18.2L23.4 32L18.2 39H27.4" fill="none" stroke="#2f4fd0" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M37 25.5H47.5M37 31H47.5M37 36.5H41.5" fill="none" stroke="#7f95d6" stroke-width="2.3" stroke-linecap="round"/><rect x="43.6" y="33.9" width="2.6" height="5.2" rx="1.1" fill="#f5b541"/></svg><span>MAJA<span class="mirror-r" aria-hidden="true">R</span> LaTeX Editor</span></h1>
       <div class="search-wrap"><input class="search" id="search" type="search" placeholder="Search projects" aria-label="Search projects" /></div>
       <div class="spacer"></div>
       <div id="engineChip" class="busy"><span class="dot"></span><span id="engineChipText">Starting engine…</span></div>
