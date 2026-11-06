@@ -332,7 +332,7 @@
     --hl-env: #7b3fb3; --hl-brace: #6a7596; --hl-special: #c6282d;
   }
   .t-k { color: var(--hl-cmd); }
-  .t-c { color: var(--hl-comment); font-: italic; }
+  .t-c { color: var(--hl-comment); font-style: italic; }
   .t-m { color: var(--hl-math); }
   .t-mk { color: var(--hl-mathcmd); }
   .t-e { color: var(--hl-env); }
@@ -380,130 +380,6 @@
   .info code { background: var(--editor-bg); padding: 1px 5px; border-radius: 4px; font-family: var(--font-mono); font-size: 12px; color: var(--text); }
   .info pre { background: var(--editor-bg); padding: 12px; border-radius: 6px; overflow-x: auto; font-family: var(--font-mono); font-size: 12px; color: var(--text); margin: 0 0 12px; }
   /* =====================================================================
-     NEUMORPHIC THEME  (paste this block at the very end of the style section, above the closing style tag)
-     Soft surfaces: every panel shares the page colour and is shaped by a
-     light shadow (top-left) and a dark shadow (bottom-right).
-     Raised = clickable or container. Inset = field, editor, pressed state.
-     Works with the existing Light / Dark toggle.
-     ===================================================================== */
-  :root, :root[data-theme="dark"] {
-    --bg: #232a3b; --panel: #232a3b; --panel-2: #2a3247; --border: #2f3850;
-    --text: #e7ebf6; --text-dim: #9aa6c6;
-    --accent: #7aa2ff; --accent-hover: #9bb8ff; --accent-ink: #0b1330;
-    --editor-bg: #1f2535; --gutter: #66739b; --grid: transparent; --pdf-bg: #1a1f2d;
-    --nm-hi: #2e374e; --nm-lo: #161b28;
-  }
-  :root[data-theme="light"] {
-    --bg: #e4e9f2; --panel: #e4e9f2; --panel-2: #dbe1ec; --border: #cdd5e3;
-    --text: #18203a; --text-dim: #566280;
-    --accent: #2a56d6; --accent-hover: #1f44b0; --accent-ink: #ffffff;
-    --editor-bg: #eaeef6; --gutter: #7c88a8; --grid: transparent; --pdf-bg: #d3d9e6;
-    --nm-hi: #ffffff; --nm-lo: #b3bdd1;
-  }
-  :root {
-    --nm-raise: 6px 6px 14px var(--nm-lo), -6px -6px 14px var(--nm-hi);
-    --nm-raise-lg: 9px 9px 20px var(--nm-lo), -9px -9px 20px var(--nm-hi);
-    --nm-raise-sm: 3px 3px 7px var(--nm-lo), -3px -3px 7px var(--nm-hi);
-    --nm-inset: inset 5px 5px 10px var(--nm-lo), inset -5px -5px 10px var(--nm-hi);
-    --nm-inset-sm: inset 2px 2px 5px var(--nm-lo), inset -2px -2px 5px var(--nm-hi);
-    scrollbar-width: thin; scrollbar-color: var(--nm-lo) transparent;
-  }
-  * { scrollbar-width: thin; scrollbar-color: var(--nm-lo) transparent; }
-  input[type=checkbox], input[type=radio] { accent-color: var(--accent); }
-  .wordmark { text-shadow: 1px 1px 2px var(--nm-hi); }
-
-  /* ---- buttons and selects ---- */
-  select, button, input[type=file]::file-selector-button {
-    background: var(--bg); color: var(--text); border: none; border-radius: 10px;
-    box-shadow: var(--nm-raise-sm); transition: box-shadow .15s ease, color .15s ease;
-  }
-  button:hover:not(:disabled) { border-color: transparent; color: var(--accent); }
-  button:active:not(:disabled) { box-shadow: var(--nm-inset-sm); }
-  button:disabled { box-shadow: none; }
-  button.primary { background: var(--accent); color: var(--accent-ink); border: none; }
-  button.primary:hover:not(:disabled) { background: var(--accent-hover); color: var(--accent-ink); }
-  button.primary:active:not(:disabled) { box-shadow: inset 2px 2px 5px rgba(0,0,0,.32), inset -2px -2px 5px rgba(255,255,255,.18); }
-  button.danger { border: none; }
-  .pactions button, #logBtn, #fwdBtn, .sync-btn, #logTabs button { background: var(--bg); border: none; }
-  #logTabs button.on { background: var(--bg); color: var(--accent); box-shadow: var(--nm-inset-sm); font-weight: 600; }
-  .tact button { background: transparent; box-shadow: none; border-radius: 6px; }
-  .tact button:hover:not(:disabled) { background: transparent; box-shadow: var(--nm-raise-sm); }
-  .sync-btn.s-err, #logBtn.alert { color: var(--err); box-shadow: var(--nm-raise-sm), 0 0 0 1px var(--err); }
-  #logBtn.warnb { color: var(--warn); box-shadow: var(--nm-raise-sm), 0 0 0 1px var(--warn); }
-
-  /* ---- fields ---- */
-  input.txt, input.search {
-    background: var(--bg); border: none; border-radius: 12px; padding: 9px 14px; box-shadow: var(--nm-inset-sm);
-  }
-  input.search { border-radius: 999px; }
-  #projectName { border: none; border-radius: 10px; }
-  #projectName:hover, #projectName:focus { background: var(--bg); box-shadow: var(--nm-inset-sm); }
-
-  /* ---- dashboard ---- */
-  .dash-head { background: var(--bg); border-bottom: none; position: relative; z-index: 2; box-shadow: 0 8px 14px -10px var(--nm-lo); }
-  .dash-body { background-image: none; }
-  .strip, .card { background: var(--bg); border: none; border-radius: 20px; box-shadow: var(--nm-raise); }
-  .strip { padding: 20px 24px; }
-  .card:hover { border: none; box-shadow: var(--nm-raise-lg); }
-  .peek { background: var(--editor-bg); border-bottom: none; margin: 10px 10px 0; border-radius: 14px; box-shadow: var(--nm-inset-sm); height: 108px; }
-  .strip-open { border-radius: 10px; box-shadow: var(--nm-raise-sm); }
-  .empty { background: var(--bg); border: none; border-radius: 20px; box-shadow: var(--nm-inset); }
-
-  /* ---- workspace chrome ---- */
-  .ws-head { background: var(--bg); border-bottom: none; padding: 10px 16px; position: relative; z-index: 3; box-shadow: 0 8px 14px -10px var(--nm-lo); }
-  #status { background: var(--bg); border-bottom: none; }
-  #progressWrap { background: var(--bg); height: 4px; }
-  #progressBar { border-radius: 4px; }
-  #sidebar { background: var(--bg); border-right: none; position: relative; z-index: 2; box-shadow: 8px 0 14px -10px var(--nm-lo); }
-  .side-tools { border-bottom: none; padding: 10px; }
-  .side-hint { border-top: none; }
-  #tree { padding: 8px 4px; }
-  .trow { border-left: none; border-radius: 10px; margin: 2px 6px; }
-  .trow:hover { background: var(--bg); box-shadow: var(--nm-raise-sm); }
-  .trow.active { background: var(--bg); box-shadow: var(--nm-inset-sm); color: var(--accent); }
-
-  /* ---- editor and PDF panes ---- */
-  #tabBar { background: var(--bg); border-bottom: none; padding: 6px 6px 0; }
-  #tabs { gap: 8px; padding: 6px 8px 12px; min-height: 0; }
-  .tab { border-right: none; border-radius: 10px; background: var(--bg); box-shadow: var(--nm-raise-sm); }
-  .tab.active { background: var(--bg); color: var(--accent); box-shadow: var(--nm-inset-sm); }
-  #editorWrap, #binaryView, #noFile {
-    margin: 0 10px 10px; border-radius: 16px; background: var(--editor-bg); box-shadow: var(--nm-inset); overflow: hidden;
-  }
-  #gutter { border-right: none; }
-  #pdfBar { background: var(--bg); border-bottom: none; padding: 6px 12px; }
-  #pdfScroll, #pdfPlaceholder { margin: 0 10px 10px; border-radius: 16px; background: var(--pdf-bg); box-shadow: var(--nm-inset); }
-  #pdfFrame { margin: 0 10px 10px; border-radius: 16px; box-shadow: var(--nm-inset); }
-  #splitter { position: relative; width: 10px; background: transparent; }
-  #splitter:hover, #splitter.drag { background: transparent; }
-  #splitter::after {
-    content: ""; position: absolute; left: 3px; right: 3px; top: 50%; height: 56px; margin-top: -28px;
-    border-radius: 4px; background: var(--bg); box-shadow: var(--nm-raise-sm);
-  }
-  #splitter:hover::after, #splitter.drag::after { background: var(--accent); }
-
-  /* ---- log drawer ---- */
-  #logDrawer { background: var(--bg); border-left: none; box-shadow: -10px 0 24px var(--nm-lo); }
-  .drawer-head, #logTabs { border-bottom: none; }
-  #logText, #problemList { margin: 0 12px 12px; border-radius: 14px; background: var(--editor-bg); box-shadow: var(--nm-inset-sm); }
-  .prob:hover { background: var(--panel-2); }
-
-  /* ---- dialogs, notices, toast ---- */
-  .overlay { background: rgba(14, 18, 30, 0.55); backdrop-filter: blur(3px); }
-  .dialog { background: var(--bg); border: none; border-radius: 22px; box-shadow: var(--nm-raise), 0 24px 60px rgba(0, 0, 0, 0.3); }
-  .opt { border: none; border-radius: 14px; box-shadow: var(--nm-raise-sm); }
-  .opt:has(input:checked) { background: var(--bg); box-shadow: var(--nm-inset-sm); }
-  .opt:has(input:checked) b { color: var(--accent); }
-  .info code, .info pre, #setupNotice code, #setupNotice pre { box-shadow: var(--nm-inset-sm); }
-  #setupNotice { background: var(--bg); border: none; border-radius: 18px; box-shadow: var(--nm-raise), inset 4px 0 0 var(--err); }
-  #toast { background: var(--bg); border: none; border-radius: 14px; box-shadow: var(--nm-raise); }
-
-  @media (max-width: 860px) {
-    #sidebar { box-shadow: 0 8px 14px -10px var(--nm-lo); }
-    #splitter { display: none; }
-  }
-  @media (prefers-reduced-motion: reduce) { button, select { transition: none; } }
-  /* =====================================================================
      BRAND + HEADER LAYOUT: logo and name on the left, search in the centre,
      actions on the right. Paste at the very end of the style section.
      ===================================================================== */
@@ -511,7 +387,7 @@
   .wordmark { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
   .brand-logo {
     width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px;
-    filter: drop-shadow(3px 3px 6px var(--nm-lo)) drop-shadow(-2px -2px 5px var(--nm-hi));
+    filter: drop-shadow(0 2px 5px rgba(60, 40, 70, 0.28));
   }
   .dash-head .spacer { flex: 1; }
   @media (min-width: 1561px) {
@@ -526,20 +402,160 @@
     .dash-head .search-wrap { order: 9; flex: 1 1 100%; max-width: none; }
     .dash-head .search-wrap .search { display: block; max-width: 520px; margin: 0 auto; }
   }
+  
   /* =====================================================================
-     LIGHT THEME: PARCHMENT & AMBER. Paste at the very end of the style
-     section, after the neumorphic block and the brand/layout block.
-     Only the light theme is changed; the dark theme stays exactly as it is.
+     DUNEGLOW: dusty-blue sky, cream haze, sunset dunes, frosted glass.
+     One token set per theme; panels use --glass, actions use --g1/--g2.
      ===================================================================== */
-  :root[data-theme="light"] {
-    --bg: #ece5d8; --panel: #ece5d8; --panel-2: #e3dbcb; --border: #d6ccb9;
-    --text: #2a2218; --text-dim: #6a5d4b;
-    --accent: #8a5000; --accent-hover: #6f4000; --accent-ink: #ffffff;
-    --editor-bg: #f1ebe0; --pdf-bg: #ddd4c4; --gutter: #9a8c76; --grid: transparent;
-    --nm-hi: #fffaf0; --nm-lo: #c4b9a5;
-    --hl-cmd: #2f4fb5; --hl-math: #9a5a00; --hl-mathcmd: #7a4a00; --hl-env: #7b3fb3;
-    --hl-comment: #8a7f6c; --hl-brace: #7d705c;
+  :root, :root[data-theme="dark"] {
+    --bg: #1b2036; --panel: #232944; --panel-2: #2c3354; --border: #3a4263;
+    --text: #eeecf4; --text-dim: #aab1c9;
+    --accent: #f4a850; --accent-hover: #f6b872; --accent-ink: #2a1626;
+    --ok: #7fd6ab; --err: #ff9a8f; --on-err: #2a1010; --warn: #f6c65a;
+    --editor-bg: #1a1f33; --gutter: #7b84a6; --grid: transparent; --pdf-bg: #151a2b;
+    --bib: #f4c06a; --img: #7fd6ab;
+    --hl-cmd: #8fb0ff; --hl-comment: #8a93b5; --hl-math: #f4c06a; --hl-mathcmd: #f6d28a;
+    --hl-env: #c9a0ee; --hl-brace: #9aa5c8; --hl-special: #ff9a8f;
+    --g1: #f4a850; --g2: #e07a5f; --g-ink: #2a1626;
+    --glass: rgba(35, 41, 68, 0.78);
+    --bgimg: radial-gradient(circle at 17% 22%, rgba(246,184,114,.22) 0, rgba(246,184,114,.08) 8%, rgba(246,184,114,0) 18%), linear-gradient(180deg, #171c33 0%, #222848 45%, #392a47 80%, #472a42 100%);
+    --dunes: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 340' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23d98a3d'/%3E%3Cstop offset='.55' stop-color='%23a24a36'/%3E%3Cstop offset='1' stop-color='%234a2745'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0,130 C180,70 360,150 560,105 S900,40 1120,100 S1360,95 1440,70 L1440,340 L0,340Z' fill='%233b4468'/%3E%3Cpath d='M0,215 C260,170 480,205 720,170 S1130,140 1440,185 L1440,340 L0,340Z' fill='url(%23g)'/%3E%3C/svg%3E");
   }
+  :root[data-theme="light"] {
+    --bg: #dfe3e8; --panel: #f1f2f5; --panel-2: #e6e9ee; --border: #cdd4df;
+    --text: #25304a; --text-dim: #4f5d77;
+    --accent: #b4502a; --accent-hover: #96401f; --accent-ink: #ffffff;
+    --ok: #2d7a58; --err: #b4372f; --on-err: #ffffff; --warn: #8a5a00;
+    --editor-bg: #fbf8f3; --gutter: #857e69; --grid: transparent; --pdf-bg: #c9d0db;
+    --bib: #8a5a00; --img: #2d7a58;
+    --hl-cmd: #2f4fb5; --hl-comment: #6f6856; --hl-math: #9a5a00; --hl-mathcmd: #7a4a00;
+    --hl-env: #7b3fb3; --hl-brace: #66718f; --hl-special: #b4372f;
+    --g1: #b85a16; --g2: #8f3a55; --g-ink: #ffffff;
+    --glass: rgba(255, 255, 255, 0.72);
+    --bgimg: radial-gradient(circle at 17% 24%, rgba(255,224,186,.8) 0, rgba(255,224,186,.4) 6%, rgba(255,224,186,0) 15%), linear-gradient(180deg, #cbd5e1 0%, #dde1e6 34%, #ebe7df 64%, #e8dccd 100%);
+    --dunes: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 340' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23f4a63a'/%3E%3Cstop offset='.55' stop-color='%23d4622b'/%3E%3Cstop offset='1' stop-color='%2374304a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0,130 C180,70 360,150 560,105 S900,40 1120,100 S1360,95 1440,70 L1440,340 L0,340Z' fill='%239db0c8'/%3E%3Cpath d='M0,215 C260,170 480,205 720,170 S1130,140 1440,185 L1440,340 L0,340Z' fill='url(%23g)'/%3E%3C/svg%3E");
+  }
+  * { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  html { background: var(--bgimg) fixed; background-color: var(--bg); }
+  html, body { background-color: transparent; }
+  html { background-color: var(--bg); }
+  body::before { content: ""; position: fixed; left: 0; right: 0; bottom: 0; height: 26vh; background: var(--dunes) bottom / 100% 100% no-repeat; z-index: 0; pointer-events: none; }
+  #app { position: relative; z-index: 1; }
+  .dash-head, .ws-head, #status, #sidebar, #tabBar, #pdfBar, #logDrawer {
+    background: var(--glass); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  }
+  .ws-head, .dash-head { position: relative; z-index: 5; }
+  .strip, .card, .empty { background: var(--glass); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-radius: 14px; }
+  .dash-body { background-image: none; }
+  .dialog { background: var(--panel); border-radius: 16px; box-shadow: 0 24px 60px rgba(30, 20, 50, 0.35); }
+  .peek { background: var(--editor-bg); }
+  button, select { border-radius: 8px; }
+  button.primary, button.primary:hover:not(:disabled), .strip-open, .strip-open:hover {
+    background: linear-gradient(135deg, var(--g1), var(--g2)); color: var(--g-ink); border-color: transparent;
+  }
+  button.primary:hover:not(:disabled), .strip-open:hover { filter: brightness(1.08); }
+  #progressBar { background: linear-gradient(90deg, var(--g1), var(--g2)); }
+  .trow.active { color: var(--accent); }
+  #splitter { width: 8px; background: transparent; position: relative; }
+  #splitter::after { content: ""; position: absolute; left: 2px; right: 2px; top: 50%; height: 48px; margin-top: -24px; border-radius: 4px; background: var(--border); }
+  #splitter:hover::after, #splitter.drag::after { background: var(--accent); }
+  #splitter:hover, #splitter.drag { background: transparent; }
+  .brand-logo { filter: drop-shadow(0 2px 5px rgba(60, 40, 70, 0.28)); }
+
+  /* header menus */
+  details.menu { position: relative; }
+  details.menu > summary { list-style: none; cursor: pointer; padding: 6px 12px; font-size: 13px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel-2); color: var(--text); user-select: none; }
+  details.menu > summary::-webkit-details-marker { display: none; }
+  details.menu > summary::after { content: " \25BE"; font-size: 10px; }
+  details.menu > summary:hover, details.menu[open] > summary { border-color: var(--accent); }
+  .menu-pop { position: absolute; top: calc(100% + 6px); left: 0; z-index: 30; min-width: 230px; display: flex; flex-direction: column; gap: 10px; padding: 12px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 12px 32px rgba(30, 20, 50, 0.25); }
+  details.menu.right .menu-pop { left: auto; right: 0; }
+  .menu-pop .group { justify-content: space-between; }
+  .menu-pop select { min-width: 130px; }
+  .menu-pop button { text-align: left; }
+
+  /* one status line */
+  #compileTime { display: none; }
+  #statusText.clickable { cursor: pointer; }
+  #statusText.clickable:hover { text-decoration: underline; }
+  .sync-btn { border-radius: 999px; background: var(--panel-2); border: 1px solid var(--border); }
+  .theme-btn { min-width: 36px; padding: 5px 9px; font-size: 15px; line-height: 1; }
+
+  /* file filter */
+  #treeFilter { margin: 0 8px 6px; width: calc(100% - 16px); border-radius: 999px; }
+
+  /* touch: file actions cannot rely on hover */
+  @media (hover: none) { .trow .tact { display: flex; } }
+  @media (prefers-contrast: more) {
+    :root, :root[data-theme] { --text-dim: var(--text); --border: var(--text); }
+  }
+
+  /* editor extras: wrap, gutter markers, status line, autocomplete */
+  #sideToggle, #wrapBtn { margin: 0 0 0 8px; padding: 2px 10px; font-size: 12px; flex-shrink: 0; background: transparent; }
+  #wrapBtn { margin-left: 0; }
+  #wrapBtn[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
+  #sidebar.collapsed { display: none; }
+  #editor, #highlight { scrollbar-gutter: stable; }
+  #editorWrap.wrap #editor, #editorWrap.wrap #highlight { white-space: pre-wrap; overflow-wrap: break-word; word-break: normal; }
+  #gutter .ge { color: var(--err); font-weight: 600; }
+  #gutter .gw { color: var(--warn); font-weight: 600; }
+  #gutter .ge::before, #gutter .gw::before { content: "\25CF "; }
+  #edStatus { display: flex; gap: 16px; padding: 3px 14px; font-size: 11.5px; color: var(--text-dim); font-variant-numeric: tabular-nums; border-top: 1px solid var(--border); }
+  #ac { position: absolute; z-index: 25; min-width: 190px; max-width: 340px; max-height: 210px; overflow-y: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 28px rgba(30, 20, 50, 0.28); font-family: var(--font-mono); font-size: 12.5px; padding: 4px; }
+  #ac div { padding: 3px 8px; border-radius: 5px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #ac div.on { background: var(--accent); color: var(--g-ink); }
+
+  /* status now lives in the header */
+  .ws-head #status { flex: 1 1 140px; min-width: 0; padding: 0; background: transparent; border: 0; -webkit-backdrop-filter: none; backdrop-filter: none; font-size: 12.5px; }
+  #saveState:empty { display: none; }
+  #saveState { white-space: nowrap; }
+  #logBtn { padding: 5px 12px; font-size: 13px; background: var(--panel-2); }
+
+  /* floating log window: drag the title, resize from the corner, double-click the title to minimise */
+  #logDrawer {
+    position: fixed; top: 120px; right: 24px; left: auto; bottom: auto;
+    width: 460px; height: 340px; min-width: 300px; min-height: 140px; max-width: 96vw; max-height: 88vh;
+    resize: both; overflow: hidden; background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+    box-shadow: 0 18px 50px rgba(30, 20, 50, 0.35); z-index: 40;
+    transform: translateY(8px); opacity: 0; visibility: hidden;
+    transition: opacity 0.15s, transform 0.15s, visibility 0s linear 0.15s;
+  }
+  #logDrawer.open { transform: none; opacity: 1; visibility: visible; transition: opacity 0.15s, transform 0.15s, visibility 0s; }
+  #logDrawer .drawer-head { cursor: move; user-select: none; touch-action: none; }
+  #logDrawer .drawer-head button { cursor: pointer; }
+  .dh-btns { display: flex; gap: 6px; }
+  #logDrawer.min { height: auto !important; min-height: 0; resize: none; }
+  #logDrawer.min #logTabs, #logDrawer.min #problemList, #logDrawer.min #logText { display: none; }
+  @media (max-width: 860px) {
+    #logDrawer { left: 8px !important; right: 8px !important; top: auto !important; bottom: 8px !important; width: auto !important; height: 46vh !important; }
+    #logDrawer.min { height: auto !important; }
+  }
+
+  /* left panel uses the Timetable Generator navigation colours */
+  #sidebar {
+    background: linear-gradient(185deg, #566b8c 0%, #44516f 42%, #59354f 86%, #6c2f45 100%);
+    border-right: 0; color: #f6f8fc;
+    --text: #f6f8fc; --text-dim: #d3dcec; --border: rgba(255, 255, 255, 0.22);
+    --panel: rgba(255, 255, 255, 0.14); --panel-2: rgba(255, 255, 255, 0.14); --editor-bg: rgba(255, 255, 255, 0.14);
+    --accent: #f6a23a; --accent-hover: #f8b45f; --accent-ink: #3b1d2c; --bib: #ffd28a; --img: #8fe3c0;
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
+  #sidebar .trow:hover { background: rgba(255, 255, 255, 0.10); }
+  #sidebar .trow.active { background: rgba(255, 255, 255, 0.17); color: #fff; font-weight: 600; border-left-color: #f6a23a; }
+  #sidebar #treeFilter::placeholder { color: #d3dcec; opacity: 1; }
+  #sidebar button:hover:not(:disabled) { background: rgba(255, 255, 255, 0.22); border-color: #f6a23a; }
+
+  /* log window: dock toggle, copy button */
+  #logTabs #logCopy { margin-left: auto; }
+  #logDrawer.docked {
+    left: 0 !important; right: 0 !important; top: auto !important; bottom: 0 !important; width: auto !important;
+    max-width: none; min-width: 0; max-height: 70vh; border-radius: 14px 14px 0 0; resize: vertical;
+    border-left: 0; border-right: 0; border-bottom: 0;
+  }
+  #logDrawer.docked .drawer-head { cursor: default; }
+
+  canvas.majar-logo { display: block; flex-shrink: 0; cursor: pointer; border-radius: 0; filter: none; }
+  .majar-logo.brand-logo { width: auto; height: auto; border-radius: 0; filter: none; }
 </style>
 </head>
 <body>
@@ -548,12 +564,12 @@
   <!-- ============ DASHBOARD ============ -->
   <section id="dashboard">
     <div class="dash-head">
-      <h1 class="wordmark" aria-label="MAJAR LaTeX Editor"><svg class="brand-logo" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="mj-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6f95ff"/><stop offset="1" stop-color="#2f4fd0"/></linearGradient></defs><rect width="64" height="64" rx="15" fill="url(#mj-bg)"/><path d="M31 19.5C25.5 16.6 18.5 16.4 12.5 18.4V46C18.5 44 25.5 44.3 31 47.2Z" fill="#f7f9ff"/><path d="M33 19.5C38.5 16.6 45.5 16.4 51.5 18.4V46C45.5 44 38.5 44.3 33 47.2Z" fill="#dbe4ff"/><path d="M10.5 49C18 46.6 25.8 47 32 50.4C38.2 47 46 46.6 53.5 49" fill="none" stroke="#dbe4ff" stroke-width="2.6" stroke-linecap="round"/><path d="M27.4 25H18.2L23.4 32L18.2 39H27.4" fill="none" stroke="#2f4fd0" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M37 25.5H47.5M37 31H47.5M37 36.5H41.5" fill="none" stroke="#7f95d6" stroke-width="2.3" stroke-linecap="round"/><rect x="43.6" y="33.9" width="2.6" height="5.2" rx="1.1" fill="#f5b541"/></svg><span>MAJA<span class="mirror-r" aria-hidden="true">R</span> LaTeX Editor</span></h1>
+      <h1 class="wordmark" aria-label="MAJAR LaTeX Editor"><canvas class="brand-logo majar-logo" data-size="56" aria-hidden="true" title="Click to replay"></canvas><span>MAJA<span class="mirror-r" aria-hidden="true">R</span> LaTeX Editor</span></h1>
       <div class="search-wrap"><input class="search" id="search" type="search" placeholder="Search projects" aria-label="Search projects" /></div>
       <div class="spacer"></div>
       <div id="engineChip" class="busy"><span class="dot"></span><span id="engineChipText">Starting engine…</span></div>
       <button class="sync-btn s-off" aria-label="Cloud sync"><span class="sdot"></span><span class="sync-label">Set up sync</span></button>
-      <button class="theme-btn" aria-label="Switch colour theme">Light theme</button>
+      <button class="theme-btn" aria-label="Switch colour theme" title="Switch colour theme">&#9790;</button>
       <button id="importBtn">Upload project</button>
       <button id="newProjectBtn" class="primary">New project</button>
       <input type="file" id="importInput" accept=".zip,.tex,.bib,.sty,.cls,.png,.jpg,.jpeg,.pdf" multiple hidden />
@@ -570,37 +586,46 @@
   <!-- ============ WORKSPACE ============ -->
   <section id="workspace" hidden>
     <header class="ws-head">
+      <canvas class="majar-logo" data-size="48" aria-hidden="true" title="Click to replay"></canvas>
       <button id="backBtn" title="Back to all projects">← Projects</button>
       <input id="projectName" aria-label="Project name" spellcheck="false" />
-      <div class="group">
-        <span class="lbl">Engine</span>
-        <select id="engineSelect" title="Engine">
-          <option value="pdflatex">pdfLaTeX</option>
-          <option value="xelatex">XeLaTeX</option>
-          <option value="lualatex">LuaLaTeX</option>
-        </select>
-      </div>
-      <div class="group">
-        <span class="lbl">Main file</span>
-        <select id="mainSelect" title="Main document"></select>
-      </div>
-      <label class="check" title="Run BibTeX when the project has a .bib file"><input type="checkbox" id="optBibtex" /> BibTeX</label>
-      <label class="check" title="Run extra passes to resolve references, TOC and citations"><input type="checkbox" id="optRerun" /> Extra passes</label>
-      <div class="spacer"></div>
-      <button class="theme-btn" aria-label="Switch colour theme">Light theme</button>
-      <button id="downloadPdfBtn" disabled>Download PDF</button>
-      <button id="downloadZipBtn">Download .zip</button>
+      <div id="status" class="busy"><span class="dot"></span><span id="statusText" class="grow">Starting engine…</span><span id="compileTime"></span><span id="saveState"></span></div>
       <label class="check"><input type="checkbox" id="autoCompile" checked /> Auto-compile</label>
+      <details class="menu" id="buildMenu">
+        <summary>Build</summary>
+        <div class="menu-pop">
+          <div class="group"><span class="lbl">Engine</span>
+            <select id="engineSelect" title="Engine">
+              <option value="pdflatex">pdfLaTeX</option>
+              <option value="xelatex">XeLaTeX</option>
+              <option value="lualatex">LuaLaTeX</option>
+            </select>
+          </div>
+          <div class="group"><span class="lbl">Main file</span><select id="mainSelect" title="Main document"></select></div>
+          <label class="check" title="Run BibTeX when the project has a .bib file"><input type="checkbox" id="optBibtex" /> BibTeX</label>
+          <label class="check" title="Run extra passes to resolve references, TOC and citations"><input type="checkbox" id="optRerun" /> Extra passes</label>
+          <label class="check" title="Open the log window when a compile has errors"><input type="checkbox" id="optAutoLog" checked /> Open log on errors</label>
+        </div>
+      </details>
+      <details class="menu right" id="dlMenu">
+        <summary>Download</summary>
+        <div class="menu-pop">
+          <button id="downloadPdfBtn" disabled>Download PDF</button>
+          <button id="downloadZipBtn">Download .zip</button>
+        </div>
+      </details>
+      <button class="sync-btn s-off" aria-label="Cloud sync"><span class="sdot"></span><span class="sync-label">Set up sync</span></button>
+      <button id="logBtn" aria-expanded="false" aria-controls="logDrawer">Log</button>
+      <button class="theme-btn" aria-label="Switch colour theme" title="Switch colour theme">&#9790;</button>
       <button id="compileBtn" class="primary" disabled title="Ctrl/Cmd + Enter">Compile</button>
     </header>
 
-    <div id="status" class="busy"><span class="dot"></span><span id="statusText" class="grow">Starting engine…</span><span id="compileTime"></span><span id="saveState"></span><button class="sync-btn s-off" aria-label="Cloud sync"><span class="sdot"></span><span class="sync-label">Set up sync</span></button><button id="logBtn" aria-expanded="false" aria-controls="logDrawer">Log</button></div>
     <div id="progressWrap"><div id="progressBar"></div></div>
 
     <div id="mainArea">
       <aside id="logDrawer" aria-label="Compilation log">
-        <div class="drawer-head"><h3>Compilation log</h3><button id="logClose">Close</button></div>
-        <div id="logTabs"><button id="tabProblems" class="on">Problems</button><button id="tabRaw">Raw log</button></div>
+        <div class="drawer-head"><h3>Compilation log</h3><span class="dh-btns"><button id="logDock" title="Dock at the bottom" aria-label="Dock the log at the bottom">Dock</button><button id="logMin" title="Minimise" aria-label="Minimise log">&#8211;</button><button id="logClose">Close</button></span></div>
+        <div id="logTabs"><button id="tabProblems" class="on">Problems</button><button id="tabRaw">Raw log</button><button id="logCopy" title="Copy the raw log, or the problem list, to the clipboard">Copy log</button></div>
         <div id="problemList"></div>
         <pre id="logText" hidden></pre>
       </aside>
@@ -611,20 +636,23 @@
           <button id="uploadBtn" title="Upload files into this project">Upload</button>
           <input type="file" id="uploadInput" multiple hidden />
         </div>
-        <div id="tree"></div>
+        <input class="search" id="treeFilter" type="search" placeholder="Filter files" aria-label="Filter files" />
+      <div id="tree"></div>
         <div class="side-hint">Drop files here to add them. Use ★ to choose the main .tex file.</div>
       </aside>
 
       <div id="split">
         <div id="editorPane">
-          <div id="tabBar"><div id="tabs"></div><button id="fwdBtn" title="Scroll the PDF to the line your cursor is on (or Ctrl/Cmd + click in the editor)">Show in PDF</button></div>
+          <div id="tabBar"><button id="sideToggle" title="Show or hide the file list" aria-label="Show or hide the file list">&#9776;</button><div id="tabs"></div><button id="wrapBtn" aria-pressed="true" title="Soft-wrap long lines">Wrap</button><button id="fwdBtn" title="Scroll the PDF to the line your cursor is on (or Ctrl/Cmd + click in the editor)">Show in PDF</button></div>
           <div id="editorWrap">
             <pre id="gutter" aria-hidden="true"></pre>
             <div id="codeBox">
               <pre id="highlight" aria-hidden="true"></pre>
               <textarea id="editor" spellcheck="false" wrap="off" aria-label="LaTeX source"></textarea>
+              <div id="ac" role="listbox" aria-label="Suggestions" hidden></div>
             </div>
           </div>
+          <div id="edStatus" aria-live="off"></div>
           <div id="binaryView" hidden></div>
           <div id="noFile" hidden>Select a file from the sidebar to edit it.</div>
         </div>
@@ -711,6 +739,8 @@ const uid = () => (crypto.randomUUID ? crypto.randomUUID() : 'p' + Date.now().to
 const fmtDate = (t) => new Date(t).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
 const extOf = (p) => { const m = /\.([^./]+)$/.exec(p); return m ? m[1].toLowerCase() : ''; };
 const baseName = (p) => p.split('/').pop();
+const NAT = (a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+let treeQ = '';
 const dirName = (p) => (p.includes('/') ? p.slice(0, p.lastIndexOf('/')) : '');
 const slug = (s) => (s || 'document').trim().replace(/[^\w.-]+/g, '_').replace(/^_+|_+$/g, '') || 'document';
 const ENGINE_LABEL = { pdflatex: 'pdfLaTeX', xelatex: 'XeLaTeX', lualatex: 'LuaLaTeX' };
@@ -977,6 +1007,7 @@ let engineState = { kind: 'busy', text: 'Starting engine…' };
 function setStatus(kind, text) {
   $('status').className = kind;
   $('statusText').textContent = text;
+  $('statusText').title = text;
 }
 function setEngineState(kind, text) {
   engineState = { kind, text };
@@ -1325,6 +1356,14 @@ $('logClose').addEventListener('click', () => setLogOpen(false));
 function setLogOpen(open) {
   $('logDrawer').classList.toggle('open', open);
   $('logBtn').setAttribute('aria-expanded', String(open));
+  if (logPadFn) logPadFn();
+}
+var logPadFn = null;
+let lastLogSig = '';
+function autoOpenLog(sig) {   // open only for a new error, never again for the same one the user already closed
+  if (!$('optAutoLog').checked || sig === lastLogSig) return;
+  lastLogSig = sig;
+  setLogOpen(true);
 }
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('logDrawer').classList.contains('open') && !$('modalRoot').children.length) setLogOpen(false); });
 document.addEventListener('keydown', (e) => {
@@ -1334,7 +1373,7 @@ document.addEventListener('keydown', (e) => {
 
 /* ---- main file selector ---- */
 function renderMainSelect() {
-  const tex = Object.keys(proj.files).filter((k) => extOf(k) === 'tex').sort();
+  const tex = Object.keys(proj.files).filter((k) => extOf(k) === 'tex').sort(NAT);
   const sel = $('mainSelect');
   sel.innerHTML = tex.length ? tex.map((k) => `<option value="${esc(k)}">${esc(k)}</option>`).join('') : '<option value="">(no .tex files)</option>';
   if (proj.mainFile && tex.includes(proj.mainFile)) sel.value = proj.mainFile;
@@ -1376,17 +1415,21 @@ function buildTree() {
 }
 function renderTree() {
   const root = buildTree();
+  const Q = treeQ.trim().toLowerCase();
+  const hit = (p) => p.toLowerCase().includes(Q);
+  const hasHit = (n) => n.files.some(hit) || Object.values(n.dirs).some(hasHit);
   const out = [];
   const walk = (node, depth) => {
-    Object.keys(node.dirs).sort((a, b) => a.localeCompare(b)).forEach((name) => {
+    Object.keys(node.dirs).sort(NAT).forEach((name) => {
       const d = node.dirs[name];
-      const isCollapsed = collapsed.has(d.path);
+      if (Q && !hasHit(d)) return;
+      const isCollapsed = !Q && collapsed.has(d.path);
       out.push(`<div class="trow dir" data-kind="dir" data-path="${esc(d.path)}" style="padding-left:${8 + depth * 14}px">
         <span class="caret">${isCollapsed ? '▸' : '▾'}</span>${iconHtml('dir')}<span class="tname">${esc(name)}</span>
         <span class="tact"><button data-act="newfile" title="New file in this folder" aria-label="New file in ${esc(name)}">+</button><button data-act="rename" title="Rename" aria-label="Rename ${esc(name)}">✎</button><button data-act="delete" title="Delete folder" aria-label="Delete ${esc(name)}">✕</button></span></div>`);
       if (!isCollapsed) walk(d, depth + 1);
     });
-    node.files.sort((a, b) => baseName(a).localeCompare(baseName(b))).forEach((p) => {
+    node.files.filter((p) => !Q || hit(p)).sort((a, b) => NAT(baseName(a), baseName(b))).forEach((p) => {
       const isMain = p === proj.mainFile;
       out.push(`<div class="trow file${p === active ? ' active' : ''}" data-kind="file" data-path="${esc(p)}" style="padding-left:${8 + depth * 14 + 17}px">
         ${iconHtml(iconKind(p))}<span class="tname" title="${esc(p)}">${esc(baseName(p))}</span>${isMain ? '<span class="badge" title="Main file">★</span>' : ''}
@@ -1394,9 +1437,10 @@ function renderTree() {
     });
   };
   walk(root, 0);
-  $('tree').innerHTML = out.join('') || '<div class="side-hint" style="border:none">This project is empty. Add a file to start.</div>';
+  $('tree').innerHTML = out.join('') || (Q ? '<div class="side-hint" style="border:none">No files match.</div>' : '<div class="side-hint" style="border:none">This project is empty. Add a file to start.</div>');
 }
 
+$('treeFilter').addEventListener('input', (e) => { treeQ = e.target.value; renderTree(); });
 $('tree').addEventListener('click', async (e) => {
   const row = e.target.closest('.trow');
   if (!row) return;
@@ -1499,6 +1543,7 @@ async function addUploads(files) {
 
 /* ============================== tabs + editor ============================== */
 function showPane(which) {
+  $('edStatus').hidden = which !== 'text';
   $('editorWrap').hidden = which !== 'text';
   $('fwdBtn').hidden = which !== 'text';
   $('binaryView').hidden = which !== 'bin';
@@ -1605,17 +1650,72 @@ function scheduleHighlight() {
   hlFrame = requestAnimationFrame(() => { hlFrame = 0; updateHighlight(); });
 }
 
-let gutterLines = 0;
-function updateGutter(force) {
-  const n = editor.value.split('\n').length;
-  if (force || n !== gutterLines) {
-    gutterLines = n;
-    let s = '';
-    for (let i = 1; i <= n; i++) s += i + '\n';
-    $('gutter').textContent = s;
-    $('gutter').style.minWidth = `${Math.max(42, String(n).length * 9 + 22)}px`;
+let gutterLines = 0, gutterRaf = 0;
+let wrapOn = true;
+try { wrapOn = localStorage.getItem('latexViewer:wrap') !== '0'; } catch (e) { /* ignore */ }
+let mirrorEl = null;
+function getMirror() {
+  if (!mirrorEl) {
+    mirrorEl = document.createElement('div');
+    mirrorEl.setAttribute('aria-hidden', 'true');
+    mirrorEl.style.cssText = 'position:absolute;visibility:hidden;left:-9999px;top:0;box-sizing:border-box;';
+    document.body.appendChild(mirrorEl);
   }
+  const cs = getComputedStyle(editor);
+  ['fontFamily', 'fontSize', 'lineHeight', 'letterSpacing', 'tabSize', 'paddingLeft', 'paddingRight', 'paddingTop', 'paddingBottom'].forEach((k) => { mirrorEl.style[k] = cs[k]; });
+  mirrorEl.style.width = `${editor.clientWidth}px`;
+  mirrorEl.style.whiteSpace = wrapOn ? 'pre-wrap' : 'pre';
+  mirrorEl.style.overflowWrap = wrapOn ? 'break-word' : 'normal';
+  mirrorEl.style.wordBreak = 'normal';
+  return mirrorEl;
+}
+function visualCounts(lines) {
+  const m = getMirror(), lh = parseFloat(getComputedStyle(editor).lineHeight) || 21;
+  m.style.paddingTop = '0px'; m.style.paddingBottom = '0px';
+  m.innerHTML = lines.map((l) => `<div>${esc(l) || '&nbsp;'}</div>`).join('');
+  const out = [...m.children].map((c) => Math.max(1, Math.round(c.offsetHeight / lh)));
+  m.textContent = '';
+  return out;
+}
+function gutterMarks() {
+  const marks = new Map();
+  try {
+    if (!proj || !active) return marks;
+    diags.forEach((d) => {
+      if (!d.line || (d.sev !== 'error' && d.sev !== 'warning')) return;
+      if (resolveDiag(d) !== active) return;
+      const cur = marks.get(d.line);
+      if (!cur || (d.sev === 'error' && cur.sev !== 'error')) marks.set(d.line, { sev: d.sev, msg: d.msg });
+    });
+  } catch (e) { /* diagnostics not ready yet */ }
+  return marks;
+}
+function updateGutter(force) {
+  const lines = editor.value.split('\n'), n = lines.length;
+  if (!force && wrapOn) {
+    if (!gutterRaf) gutterRaf = requestAnimationFrame(() => { gutterRaf = 0; updateGutter(true); });
+    $('gutter').scrollTop = editor.scrollTop;
+    return;
+  }
+  if (!force && n === gutterLines) { $('gutter').scrollTop = editor.scrollTop; return; }
+  gutterLines = n;
+  const vc = wrapOn ? visualCounts(lines) : null, marks = gutterMarks();
+  let out = '';
+  for (let i = 1; i <= n; i++) {
+    const mk = marks.get(i);
+    out += mk ? `<span class="${mk.sev === 'error' ? 'ge' : 'gw'}" title="${esc(mk.msg || '')}">${i}</span>` : i;
+    out += '\n';
+    if (vc) for (let j = 1; j < vc[i - 1]; j++) out += '\n';
+  }
+  $('gutter').innerHTML = out;
+  $('gutter').style.minWidth = `${Math.max(42, String(n).length * 9 + 34)}px`;
   $('gutter').scrollTop = editor.scrollTop;
+}
+function applyWrap() {
+  $('editorWrap').classList.toggle('wrap', wrapOn);
+  editor.setAttribute('wrap', wrapOn ? 'soft' : 'off');
+  $('wrapBtn').setAttribute('aria-pressed', String(wrapOn));
+  updateGutter(true); updateHighlight();
 }
 editor.addEventListener('scroll', syncEditorScroll);
 editor.addEventListener('input', () => {
@@ -2105,6 +2205,8 @@ $('pdfScroll').addEventListener('dblclick', (e) => {
   const stop = () => { dragging = false; sp.classList.remove('drag'); $('pdfFrame').style.pointerEvents = ''; };
   sp.addEventListener('pointerup', stop);
   sp.addEventListener('pointercancel', stop);
+  sp.addEventListener('dblclick', () => { $('editorPane').style.flex = '0 0 50%'; });
+  sp.title = 'Drag to resize, double-click to reset';
 })();
 
 /* ============================== log diagnostics ============================== */
@@ -2281,6 +2383,7 @@ function updateLogBadge() {
   b.textContent = 'Log' + (e ? ` · ${e} error${e === 1 ? '' : 's'}` : '') + (w ? ` · ${w} warning${w === 1 ? '' : 's'}` : '');
   b.classList.toggle('alert', e > 0);
   b.classList.toggle('warnb', e === 0 && w > 0);
+  updateGutter(true);
 }
 $('tabProblems').addEventListener('click', () => setLogTab('problems'));
 $('tabRaw').addEventListener('click', () => setLogTab('raw'));
@@ -2408,14 +2511,14 @@ async function compile() {
         syncRaw = sx; syncData = null;
         if (!sx) console.warn('[SyncTeX] engine returned no SyncTeX data for', engineKey);
         showPdf(result.pdf);
-        if (nErr) { setStatus('err', `PDF built, but with ${nErr} error${nErr === 1 ? '' : 's'}: ${firstErr.msg}`); setLogTab('problems'); setLogOpen(true); }
-        else setStatus('ok', nWarn ? `Compiled with ${nWarn} warning${nWarn === 1 ? '' : 's'}. Open the log to see them.` : 'Compiled successfully.');
+        if (nErr) { setStatus('err', `PDF built, but with ${nErr} error${nErr === 1 ? '' : 's'}: ${firstErr.msg}`); setLogTab('problems'); autoOpenLog(`e:${nErr}:${firstErr.msg}`); }
+        else { lastLogSig = ''; setStatus('ok', `Compiled in ${((performance.now() - t0) / 1000).toFixed(1)} s · 0 errors · ${nWarn} warning${nWarn === 1 ? '' : 's'}`); }
         $('compileTime').textContent = `${((performance.now() - t0) / 1000).toFixed(1)} s`;
       }
     } else if (stillHere) {
       setStatus('err', firstErr ? `Compile failed: ${firstErr.msg}` : 'Compile failed: TeX did not produce a PDF. Open the log for details.');
       setLogTab(found.length ? 'problems' : 'raw');
-      setLogOpen(true);
+      autoOpenLog(`f:${firstErr ? firstErr.msg : 'nopdf'}`);
     }
   } catch (err) {
     console.error(err);
@@ -2424,7 +2527,7 @@ async function compile() {
       diags = [{ sev: 'error', msg: String(err && err.message ? err.message : err), file: null, line: null, ctx: '' }];
       renderProblems(); updateLogBadge(); setLogTab('problems');
       setStatus('err', 'Compile error. Open the log for details.');
-      setLogOpen(true);
+      autoOpenLog(`x:${String(err && err.message ? err.message : err)}`);
     }
   } finally {
     cpStop();
@@ -2497,7 +2600,7 @@ function renderSyncUI() {
     b.querySelector('.sync-label').textContent = label;
     b.title = sync.msg || label;
   });
-  if (proj && !dirty && sync.status === 'ok') setSaveState('Saved and synced');
+  if (proj && !dirty && sync.status === 'ok') setSaveState('');
 }
 function setSync(status, msg = '') {
   sync.status = status; sync.msg = msg;
@@ -2859,12 +2962,328 @@ window.addEventListener('online', () => scheduleSyncAll(500));
 function applyTheme(t) {
   document.documentElement.dataset.theme = t;
   try { localStorage.setItem('latexViewer:theme', t); } catch (e) { /* ignore */ }
-  document.querySelectorAll('.theme-btn').forEach((b) => { b.textContent = t === 'dark' ? 'Light theme' : 'Dark theme'; });
+  document.querySelectorAll('.theme-btn').forEach((b) => { b.textContent = t === 'dark' ? '\u2600' : '\u263E'; const lbl = t === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'; b.title = lbl; b.setAttribute('aria-label', lbl); });
 }
 document.querySelectorAll('.theme-btn').forEach((b) => b.addEventListener('click', () => {
   applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
 }));
 applyTheme(document.documentElement.dataset.theme || 'dark');
+
+/* ---- editor status line ---- */
+let stRaf = 0;
+function updateEdStatus() {
+  if (stRaf) return;
+  stRaf = requestAnimationFrame(() => {
+    stRaf = 0;
+    const v = editor.value, pos = editor.selectionStart, before = v.slice(0, pos);
+    const ln = before.split('\n').length, col = pos - before.lastIndexOf('\n');
+    const words = (v.match(/\S+/g) || []).length;
+    $('edStatus').textContent = `Ln ${ln}, Col ${col}   \u00B7   ${words.toLocaleString()} words in source   \u00B7   ${v.length.toLocaleString()} characters`;
+  });
+}
+['input', 'click', 'keyup', 'focus'].forEach((ev) => editor.addEventListener(ev, updateEdStatus));
+
+/* ---- autocomplete: commands, environments, \ref labels and \cite keys ---- */
+const AC_CMDS = String.raw`\section{ \subsection{ \subsubsection{ \paragraph{ \chapter{ \part{ \textbf{ \textit{ \emph{ \underline{ \texttt{ \textsc{ \textrm{ \footnote{ \label{ \ref{ \eqref{ \pageref{ \autoref{ \cite{ \citep{ \citet{ \begin{ \end{ \item \documentclass{ \usepackage{ \input{ \include{ \includegraphics{ \caption{ \title{ \author{ \date{ \maketitle \tableofcontents \bibliography{ \bibliographystyle{ \newcommand{ \renewcommand{ \newtheorem{ \newenvironment{ \hline \centering \noindent \newpage \clearpage \vspace{ \hspace{ \bigskip \medskip \smallskip \task \text{ \frac{ \dfrac{ \tfrac{ \binom{ \sqrt{ \sum \prod \int \oint \iint \lim \limsup \liminf \infty \partial \nabla \mathbb{ \mathcal{ \mathbf{ \mathrm{ \mathfrak{ \mathscr{ \operatorname{ \overline{ \underline{ \hat{ \tilde{ \vec{ \bar{ \left \right \big \Big \cdot \cdots \ldots \vdots \ddots \times \div \pm \mp \leq \geq \neq \approx \equiv \sim \simeq \cong \propto \subset \subseteq \supset \supseteq \in \notin \ni \cup \cap \bigcup \bigcap \setminus \emptyset \varnothing \forall \exists \nexists \neg \land \lor \wedge \vee \oplus \otimes \implies \iff \to \mapsto \Rightarrow \Leftarrow \Leftrightarrow \rightarrow \leftarrow \leftrightarrow \sin \cos \tan \cot \sec \csc \arcsin \arccos \arctan \sinh \cosh \tanh \log \ln \exp \max \min \sup \inf \det \ker \dim \deg \gcd \Re \Im \mid \nmid \quad \qquad \alpha \beta \gamma \delta \epsilon \varepsilon \zeta \eta \theta \vartheta \iota \kappa \lambda \mu \nu \xi \pi \rho \sigma \tau \upsilon \phi \varphi \chi \psi \omega \Gamma \Delta \Theta \Lambda \Xi \Pi \Sigma \Upsilon \Phi \Psi \Omega`.split(/\s+/);
+const AC_ENVS = ['document', 'itemize', 'enumerate', 'description', 'equation', 'equation*', 'align', 'align*', 'gather', 'gather*', 'multline', 'split', 'cases', 'matrix', 'pmatrix', 'bmatrix', 'vmatrix', 'array', 'tabular', 'table', 'figure', 'center', 'flushleft', 'flushright', 'quote', 'abstract', 'verbatim', 'minipage', 'theorem', 'lemma', 'proposition', 'corollary', 'definition', 'example', 'remark', 'proof', 'frame', 'tikzpicture'];
+const ac = { open: false, items: [], on: 0, ctx: null };
+let acCache = { t: 0, labels: [], keys: [], envs: [] };
+function acScan() {
+  if (Date.now() - acCache.t < 1500) return acCache;
+  const labels = new Set(), keys = new Set(), envs = new Set(AC_ENVS);
+  Object.entries(proj.files).forEach(([p, f]) => {
+    if (f.t !== 'text') return;
+    let m;
+    const L = /\\label\{([^}\s]+)\}/g; while ((m = L.exec(f.c))) labels.add(m[1]);
+    const B = /\\bibitem(?:\[[^\]]*\])?\{([^}\s]+)\}/g; while ((m = B.exec(f.c))) keys.add(m[1]);
+    if (extOf(p) === 'bib') { const K = /@\w+\s*\{\s*([^,\s]+),/g; while ((m = K.exec(f.c))) keys.add(m[1]); }
+    const E = /\\(?:begin|newtheorem\*?|newenvironment)\s*\{([A-Za-z*]+)\}/g; while ((m = E.exec(f.c))) envs.add(m[1]);
+  });
+  acCache = { t: Date.now(), labels: [...labels].sort(NAT), keys: [...keys].sort(NAT), envs: [...envs].sort(NAT) };
+  return acCache;
+}
+function acContext() {
+  const pos = editor.selectionStart;
+  if (pos !== editor.selectionEnd || !proj || !active) return null;
+  if (!['tex', 'sty', 'cls', 'ltx', 'latex'].includes(extOf(active))) return null;
+  const before = editor.value.slice(Math.max(0, pos - 100), pos);
+  let m;
+  if ((m = /\\begin\{([A-Za-z*]*)$/.exec(before))) return { kind: 'begin', q: m[1], start: pos - m[1].length };
+  if ((m = /\\end\{([A-Za-z*]*)$/.exec(before))) return { kind: 'end', q: m[1], start: pos - m[1].length };
+  if ((m = /\\(?:ref|eqref|pageref|autoref|cref|Cref|vref)\*?(?:\[[^\]]*\])?\{([^{}]*)$/.exec(before))) return { kind: 'label', q: m[1], start: pos - m[1].length };
+  if ((m = /\\(?:cite[a-zA-Z]*|nocite)\*?(?:\[[^\]]*\])*\{([^{}]*)$/.exec(before))) {
+    const q = m[1].slice(m[1].lastIndexOf(',') + 1).trimStart();
+    return { kind: 'key', q, start: pos - q.length };
+  }
+  if ((m = /\\([A-Za-z]+)$/.exec(before))) return { kind: 'cmd', q: m[1], start: pos - m[1].length - 1 };
+  return null;
+}
+function acItems(ctx) {
+  const q = ctx.q.toLowerCase(), pick = (arr) => arr.filter((x) => x.toLowerCase().startsWith(q));
+  if (ctx.kind === 'cmd') return pick(AC_CMDS.map((c) => c.slice(1))).map((x) => `\\${x}`).slice(0, 40);
+  const sc = acScan();
+  if (ctx.kind === 'begin' || ctx.kind === 'end') return pick(sc.envs).slice(0, 60);
+  if (ctx.kind === 'label') return pick(sc.labels).slice(0, 60);
+  return pick(sc.keys).slice(0, 60);
+}
+function caretXY(pos) {
+  const m = getMirror();
+  m.textContent = editor.value.slice(0, pos);
+  const sp = document.createElement('span');
+  sp.textContent = '\u200b';
+  m.appendChild(sp);
+  const r = { x: sp.offsetLeft - editor.scrollLeft, y: sp.offsetTop - editor.scrollTop };
+  m.textContent = '';
+  return r;
+}
+function acClose() { ac.open = false; $('ac').hidden = true; }
+function acRender() {
+  const box = $('ac');
+  box.innerHTML = ac.items.map((x, i) => `<div role="option" data-i="${i}" class="${i === ac.on ? 'on' : ''}">${esc(x)}</div>`).join('');
+  box.hidden = false; ac.open = true;
+  const { x, y } = caretXY(ac.ctx.start), lh = parseFloat(getComputedStyle(editor).lineHeight) || 21, host = $('codeBox');
+  box.style.left = `${Math.max(0, Math.min(x, host.clientWidth - box.offsetWidth - 8))}px`;
+  const below = y + lh + 4;
+  box.style.top = `${below + box.offsetHeight > host.clientHeight ? Math.max(0, y - box.offsetHeight - 4) : below}px`;
+  const cur = box.children[ac.on]; if (cur) cur.scrollIntoView({ block: 'nearest' });
+}
+function acUpdate() {
+  if (document.activeElement !== editor) return acClose();
+  const ctx = acContext();
+  if (!ctx) return acClose();
+  const items = acItems(ctx);
+  const done = ctx.kind === 'cmd' && items.length === 1 && items[0] === `\\${ctx.q}`;
+  if (!items.length || done) return acClose();
+  ac.ctx = ctx; ac.items = items; ac.on = 0;
+  acRender();
+}
+function acAccept(i) {
+  const it = ac.items[i], c = ac.ctx;
+  if (!it || !c) return;
+  const v = editor.value;
+  let end = editor.selectionStart, ins = it, caret = 0;
+  if (c.kind !== 'cmd' && v[end] === '}') end++;
+  if (c.kind === 'cmd') { if (it.endsWith('{')) { ins = `${it}}`; caret = c.start + it.length; } else caret = c.start + it.length; }
+  else if (c.kind === 'begin') { ins = `${it}}\n  \n\\end{${it}}`; caret = c.start + it.length + 4; }
+  else { ins = `${it}}`; caret = c.start + it.length + 1; }
+  acClose();
+  editor.focus();
+  editor.setSelectionRange(c.start, end);
+  if (!document.execCommand('insertText', false, ins)) { editor.setRangeText(ins, c.start, end, 'end'); editor.dispatchEvent(new Event('input')); }
+  editor.setSelectionRange(caret, caret);
+  acUpdate();
+}
+editor.addEventListener('input', acUpdate);
+editor.addEventListener('blur', acClose);
+editor.addEventListener('scroll', acClose);
+editor.addEventListener('mousedown', acClose);
+editor.addEventListener('keydown', (e) => {
+  if (!ac.open) return;
+  const move = (d) => { e.preventDefault(); e.stopImmediatePropagation(); ac.on = (ac.on + d + ac.items.length) % ac.items.length; acRender(); };
+  if (e.key === 'ArrowDown') move(1);
+  else if (e.key === 'ArrowUp') move(-1);
+  else if ((e.key === 'Enter' || e.key === 'Tab') && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) { e.preventDefault(); e.stopImmediatePropagation(); acAccept(ac.on); }
+  else if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); acClose(); }
+}, true);
+$('ac').addEventListener('mousedown', (e) => { e.preventDefault(); const d = e.target.closest('[data-i]'); if (d) acAccept(+d.dataset.i); });
+
+/* ---- wrap toggle, file-list toggle, resize ---- */
+$('wrapBtn').addEventListener('click', () => {
+  wrapOn = !wrapOn;
+  try { localStorage.setItem('latexViewer:wrap', wrapOn ? '1' : '0'); } catch (e) { /* ignore */ }
+  applyWrap();
+});
+try { if (localStorage.getItem('latexViewer:side') === '0') $('sidebar').classList.add('collapsed'); } catch (e) { /* ignore */ }
+$('sideToggle').addEventListener('click', () => {
+  const c = $('sidebar').classList.toggle('collapsed');
+  try { localStorage.setItem('latexViewer:side', c ? '0' : '1'); } catch (e) { /* ignore */ }
+});
+new ResizeObserver(() => { if (wrapOn) updateGutter(); }).observe(editor);
+applyWrap();
+
+/* ---- log window: floating or docked, copy, remembered position ---- */
+(() => {
+  const w = $('logDrawer'), head = w.querySelector('.drawer-head'), KEY = 'latexViewer:logbox', DK = 'latexViewer:logdock', DH = 'latexViewer:dockh';
+  let drag = null, lastH = 340, dockH = 260, tm = 0;
+  const docked = () => w.classList.contains('docked');
+  const pad = () => { $('mainArea').style.paddingBottom = (w.classList.contains('open') && docked()) ? `${Math.round(w.getBoundingClientRect().height)}px` : ''; };
+  logPadFn = pad;
+  const place = (l, t) => {
+    w.style.left = `${Math.min(Math.max(0, l), Math.max(0, innerWidth - 90))}px`;
+    w.style.top = `${Math.min(Math.max(48, t), Math.max(48, innerHeight - 60))}px`;
+    w.style.right = 'auto';
+  };
+  const save = () => {
+    clearTimeout(tm);
+    tm = setTimeout(() => {
+      const r = w.getBoundingClientRect();
+      if (!w.classList.contains('open') || !r.width) return;
+      const mn = w.classList.contains('min');
+      try {
+        if (docked()) { if (!mn) dockH = r.height; localStorage.setItem(DH, String(Math.round(dockH))); }
+        else { if (!mn) lastH = r.height; localStorage.setItem(KEY, JSON.stringify({ l: r.left, t: r.top, w: r.width, h: lastH })); }
+      } catch (e) { /* ignore */ }
+      pad();
+    }, 200);
+  };
+  const setDock = (on) => {
+    if (on && !w.classList.contains('min')) lastH = w.getBoundingClientRect().height || lastH;
+    w.classList.toggle('docked', on);
+    w.style.height = w.classList.contains('min') ? '' : `${Math.round(on ? dockH : lastH)}px`;
+    const b = $('logDock');
+    b.textContent = on ? 'Float' : 'Dock';
+    b.title = on ? 'Float as a window' : 'Dock at the bottom';
+    b.setAttribute('aria-label', on ? 'Float the log as a window' : 'Dock the log at the bottom');
+    try { localStorage.setItem(DK, on ? '1' : '0'); } catch (e) { /* ignore */ }
+    pad();
+  };
+  try {
+    const v = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (v && v.w > 200 && v.h > 100) { w.style.width = `${Math.min(v.w, innerWidth * 0.96)}px`; w.style.height = `${Math.min(v.h, innerHeight * 0.88)}px`; lastH = v.h; place(v.l, v.t); }
+    const dh = +localStorage.getItem(DH); if (dh > 100) dockH = dh;
+    if (localStorage.getItem(DK) === '1') setDock(true);
+  } catch (e) { /* ignore */ }
+  $('logDock').addEventListener('click', () => setDock(!docked()));
+  head.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('button') || docked()) return;
+    const r = w.getBoundingClientRect();
+    drag = { dx: e.clientX - r.left, dy: e.clientY - r.top };
+    head.setPointerCapture(e.pointerId);
+  });
+  head.addEventListener('pointermove', (e) => { if (drag) place(e.clientX - drag.dx, e.clientY - drag.dy); });
+  const end = () => { if (drag) { drag = null; save(); } };
+  head.addEventListener('pointerup', end);
+  head.addEventListener('pointercancel', end);
+  const toggleMin = () => {
+    const mn = w.classList.toggle('min');
+    $('logMin').textContent = mn ? '+' : '\u2013';
+    $('logMin').title = mn ? 'Restore' : 'Minimise';
+    $('logMin').setAttribute('aria-label', mn ? 'Restore log' : 'Minimise log');
+    pad();
+  };
+  $('logMin').addEventListener('click', toggleMin);
+  head.addEventListener('dblclick', (e) => { if (!e.target.closest('button')) toggleMin(); });
+  new ResizeObserver(() => { if (w.classList.contains('open')) save(); }).observe(w);
+  window.addEventListener('resize', () => { if (!docked() && w.style.left) { const r = w.getBoundingClientRect(); place(r.left, r.top); } pad(); });
+
+  /* copy: raw log on the Raw tab, a plain-text problem list on the Problems tab */
+  const probText = () => diags.map((d) => {
+    let f = '';
+    try { f = resolveDiag(d) || d.file || ''; } catch (e) { f = d.file || ''; }
+    return `${String(d.sev).toUpperCase()}${f ? ` ${f}` : ''}${d.line ? `:${d.line}` : ''}: ${d.msg}`;
+  }).join('\n');
+  $('logCopy').addEventListener('click', async () => {
+    let text = $('tabRaw').classList.contains('on') ? $('logText').textContent : probText();
+    if (!text.trim()) text = $('logText').textContent;
+    let ok = false;
+    try { await navigator.clipboard.writeText(text); ok = true; }
+    catch (e) {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta); ta.select();
+      try { ok = document.execCommand('copy'); } catch (e2) { /* ignore */ }
+      ta.remove();
+    }
+    const btn = $('logCopy');
+    btn.textContent = text.trim() ? (ok ? 'Copied' : 'Copy failed') : 'Nothing to copy';
+    setTimeout(() => { btn.textContent = 'Copy log'; }, 1600);
+  });
+})();
+
+/* ---- remember the auto-open choice ---- */
+try { $('optAutoLog').checked = localStorage.getItem('latexViewer:autolog') !== '0'; } catch (e) { /* ignore */ }
+$('optAutoLog').addEventListener('change', () => { try { localStorage.setItem('latexViewer:autolog', $('optAutoLog').checked ? '1' : '0'); } catch (e) { /* ignore */ } });
+
+/* ---- MAJAR logo: a dotted planet. Dots fly in, an inverted R sits inside; while compiling it spins fast and the percentage takes the R's place ---- */
+(() => {
+  const TAU = Math.PI * 2, cl = (v, a, b) => Math.min(b, Math.max(a, v));
+  const mix = (A, B, t) => A.map((v, i) => Math.round(v + (B[i] - v) * t));
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const P = [];
+  for (let i = 0, n = 110; i < n; i++) { const y = 1 - 2 * (i + 0.5) / n, r = Math.sqrt(1 - y * y), a = i * 2.39996; P.push({ x: Math.cos(a) * r, y, z: Math.sin(a) * r, c: (y + 1) / 2, s: 1 }); }
+  for (let i = 0; i < 40; i++) { const a = i / 40 * TAU, x = Math.cos(a) * 1.45, z = Math.sin(a) * 1.45, k = 0.4; P.push({ x: x * Math.cos(k), y: x * Math.sin(k), z, c: 1, s: 1.6 }); }
+  const RP = [];
+  [[[0, 0], [0, 1]], [[0, 1], [0.45, 1], [0.65, 0.93], [0.72, 0.75], [0.65, 0.57], [0.45, 0.5], [0, 0.5]], [[0.28, 0.5], [0.72, 0]]].forEach((pl) => {
+    for (let k = 0; k < pl.length - 1; k++) {
+      const [x0, y0] = pl[k], [x1, y1] = pl[k + 1], n = Math.max(1, Math.round(Math.hypot(x1 - x0, y1 - y0) / 0.15));
+      for (let j = (RP.length ? 1 : 0); j <= n; j++) { const t = j / n; RP.push({ x: -((x0 + (x1 - x0) * t) - 0.36), y: 0.5 - (y0 + (y1 - y0) * t) }); }
+    }
+  });
+  const logos = [];
+  document.querySelectorAll('canvas.majar-logo').forEach((cv) => {
+    const S = +cv.dataset.size || 56, dpr = window.devicePixelRatio || 1;
+    cv.width = S * dpr; cv.height = S * dpr; cv.style.width = `${S}px`; cv.style.height = `${S}px`;
+    const ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
+    const L = { cv, ctx, S, tf: 0, ph: Math.random() * 6, spd: 1, pa: 0, sx: [], sy: [], dl: [], rsx: [], rsy: [], rdl: [], rox: [], roy: [] };
+    L.reset = () => { L.tf = 0; P.forEach((_, i) => { L.sx[i] = (Math.random() - 0.5) * S * 1.6; L.sy[i] = (Math.random() - 0.5) * S * 1.6; L.dl[i] = Math.random() * 0.9; });
+      RP.forEach((_, i) => { const a = Math.random() * TAU, m = S * (0.25 + Math.random() * 0.2); L.rsx[i] = (Math.random() - 0.5) * S * 1.6; L.rsy[i] = (Math.random() - 0.5) * S * 1.6; L.rdl[i] = Math.random() * 0.8; L.rox[i] = Math.cos(a) * m; L.roy[i] = Math.sin(a) * m; });
+    };
+    L.reset();
+    cv.addEventListener('click', L.reset);
+    logos.push(L);
+  });
+  function draw(L, dt, compiling, pct) {
+    const { ctx, S } = L, sc = S * 0.27, cx = S / 2, cy = S / 2, dark = document.documentElement.dataset.theme !== 'light';
+    const A = dark ? [169, 154, 224] : [120, 98, 170], B = dark ? [246, 180, 94] : [214, 104, 22], ink = dark ? '#eeecf4' : '#25304a';
+    L.tf += dt;
+    L.spd += ((compiling ? (reduce ? 1.5 : 5) : (reduce ? 0.1 : 1)) - L.spd) * Math.min(1, dt * 4);
+    L.ph += dt * L.spd * 0.9;
+    L.pa += ((compiling ? 1 : 0) - L.pa) * Math.min(1, dt * 6);
+    ctx.clearRect(0, 0, S, S);
+    const cp_ = Math.cos(L.ph), sp_ = Math.sin(L.ph), ct = Math.cos(0.5), st = Math.sin(0.5);
+    const Q = P.map((p, i) => {
+      const x1 = p.x * cp_ + p.z * sp_, z1 = -p.x * sp_ + p.z * cp_, y2 = p.y * ct - z1 * st, z2 = p.y * st + z1 * ct, s = 4 / (4 - z2);
+      return { i, p, x: cx + x1 * sc * s, y: cy + y2 * sc * s, d: cl((z2 + 1.7) / 3.4, 0, 1), s };
+    }).sort((a, b) => a.d - b.d);
+    const dot = (q) => {
+      const pr = cl((L.tf - L.dl[q.i]) / 1.1, 0, 1), e = 1 - Math.pow(1 - pr, 3);
+      const sx = cx + L.sx[q.i] + Math.sin(L.tf * 1.3 + q.i) * S * 0.03, sy = cy + L.sy[q.i] + Math.cos(L.tf * 1.1 + q.i) * S * 0.03;
+      const c = mix(A, B, q.p.c), r = Math.max(1.8, S * 0.024 * q.p.s) * (0.6 + 0.9 * q.d) * q.s;
+      ctx.fillStyle = `rgba(${c},${((0.35 + 0.65 * pr) * (0.45 + 0.55 * q.d) * (1 - 0.3 * L.pa)).toFixed(3)})`;
+      ctx.beginPath(); ctx.arc(sx + (q.x - sx) * e, sy + (q.y - sy) * e, r, 0, TAU); ctx.fill();
+    };
+    const mid = Q.findIndex((q) => q.d >= 0.5), split = mid < 0 ? Q.length : mid;
+    for (let k = 0; k < split; k++) dot(Q[k]);
+    const H = S * 0.42, rr = Math.max(1.3, S * 0.024) * 1.15, ez = L.pa * L.pa * (3 - 2 * L.pa), irgb = dark ? '238,236,244' : '37,48,74';
+    RP.forEach((p, i) => {
+      const pr = cl((L.tf - 1.1 - L.rdl[i]) / 0.9, 0, 1), e = 1 - Math.pow(1 - pr, 3), a = pr * (1 - ez);
+      if (a < 0.02) return;
+      const tx = cx + p.x * H, ty = cy + p.y * H, sx = cx + L.rsx[i], sy = cy + L.rsy[i];
+      ctx.fillStyle = `rgba(${irgb},${a.toFixed(3)})`;
+      ctx.beginPath(); ctx.arc(sx + (tx - sx) * e + L.rox[i] * ez, sy + (ty - sy) * e + L.roy[i] * ez, rr, 0, TAU); ctx.fill();
+    });
+    for (let k = split; k < Q.length; k++) dot(Q[k]);
+    if (L.pa > 0.02) {
+      ctx.globalAlpha = L.pa;
+      ctx.fillStyle = dark ? 'rgba(35,41,68,.88)' : 'rgba(241,242,245,.88)';
+      ctx.beginPath(); ctx.arc(cx, cy, S * 0.28, 0, TAU); ctx.fill();
+      ctx.fillStyle = ink; ctx.font = `600 ${Math.max(10, Math.round(S * 0.2))}px system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(`${Math.round(pct)}%`, cx, cy + 1); ctx.globalAlpha = 1;
+    }
+  }
+  let last = performance.now(), shown = 0, hold = 0, was = false;
+  function loop(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const act = !!cp.active;
+    if (act) { shown = cl(+cp.pct || 0, 0, 100); was = true; hold = 0; }
+    else if (was) { was = false; shown = 100; hold = now + 700; }
+    const compiling = act || now < hold;
+    if (!document.hidden) logos.forEach((L) => { if (L.cv.offsetParent) draw(L, dt, compiling, shown); });
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+
+/* ---- header menus and clickable status ---- */
+document.addEventListener('click', (e) => {
+  document.querySelectorAll('details.menu[open]').forEach((d) => { if (!d.contains(e.target) || e.target.closest('.menu-pop button')) d.open = false; });
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') document.querySelectorAll('details.menu[open]').forEach((d) => { d.open = false; });
+});
+$('statusText').classList.add('clickable');
+$('statusText').title = 'Show compile problems';
+$('statusText').addEventListener('click', () => { if (diags.length) { setLogTab('problems'); setLogOpen(true); } });
 
 /* ============================== start ============================== */
 async function migrateLegacy() {
