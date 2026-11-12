@@ -761,12 +761,13 @@ function downloadBlob(blob, name) {
 
 /* ============================== IndexedDB ============================== */
 const dbPromise = new Promise((resolve, reject) => {
-  const req = indexedDB.open('latexViewer', 1);
-  req.onupgradeneeded = () => {
-    const db = req.result;
-    db.createObjectStore('projects', { keyPath: 'id' });
-    db.createObjectStore('pdfs', { keyPath: 'id' });
-  };
+  const req = indexedDB.open('latexViewer', 2);
+req.onupgradeneeded = (ev) => {
+  const db = req.result;
+  if (!db.objectStoreNames.contains('projects')) db.createObjectStore('projects', { keyPath: 'id' });
+  if (!db.objectStoreNames.contains('pdfs')) db.createObjectStore('pdfs', { keyPath: 'id' });
+  if (!db.objectStoreNames.contains('compileCache')) db.createObjectStore('compileCache', { keyPath: 'key' });
+};
   req.onsuccess = () => resolve(req.result);
   req.onerror = () => reject(req.error);
 });
@@ -784,6 +785,8 @@ const dbGet = (id) => tx('projects', 'readonly', (s) => s.get(id));
 const dbPut = (p) => tx('projects', 'readwrite', (s) => s.put(p));
 const pdfGet = (id) => tx('pdfs', 'readonly', (s) => s.get(id));
 const pdfPut = (rec) => tx('pdfs', 'readwrite', (s) => s.put(rec));
+const compileCacheGet = (key) => tx('compileCache', 'readonly', (s) => s.get(key));
+const compileCachePut = (rec) => tx('compileCache', 'readwrite', (s) => s.put(rec));
 const dbDelete = (id) => Promise.all([
   tx('projects', 'readwrite', (s) => s.delete(id)),
   tx('pdfs', 'readwrite', (s) => s.delete(id)),
