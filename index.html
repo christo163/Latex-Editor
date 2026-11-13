@@ -761,13 +761,12 @@ function downloadBlob(blob, name) {
 
 /* ============================== IndexedDB ============================== */
 const dbPromise = new Promise((resolve, reject) => {
-  const req = indexedDB.open('latexViewer', 2);
-req.onupgradeneeded = (ev) => {
-  const db = req.result;
-  if (!db.objectStoreNames.contains('projects')) db.createObjectStore('projects', { keyPath: 'id' });
-  if (!db.objectStoreNames.contains('pdfs')) db.createObjectStore('pdfs', { keyPath: 'id' });
-  if (!db.objectStoreNames.contains('compileCache')) db.createObjectStore('compileCache', { keyPath: 'key' });
-};
+  const req = indexedDB.open('latexViewer', 1);
+  req.onupgradeneeded = () => {
+    const db = req.result;
+    db.createObjectStore('projects', { keyPath: 'id' });
+    db.createObjectStore('pdfs', { keyPath: 'id' });
+  };
   req.onsuccess = () => resolve(req.result);
   req.onerror = () => reject(req.error);
 });
@@ -785,8 +784,6 @@ const dbGet = (id) => tx('projects', 'readonly', (s) => s.get(id));
 const dbPut = (p) => tx('projects', 'readwrite', (s) => s.put(p));
 const pdfGet = (id) => tx('pdfs', 'readonly', (s) => s.get(id));
 const pdfPut = (rec) => tx('pdfs', 'readwrite', (s) => s.put(rec));
-const compileCacheGet = (key) => tx('compileCache', 'readonly', (s) => s.get(key));
-const compileCachePut = (rec) => tx('compileCache', 'readwrite', (s) => s.put(rec));
 const dbDelete = (id) => Promise.all([
   tx('projects', 'readwrite', (s) => s.delete(id)),
   tx('pdfs', 'readwrite', (s) => s.delete(id)),
@@ -2417,7 +2414,6 @@ function cpStart() {
   clearInterval(cp.timer);
   cp.timer = setInterval(cpRender, 120);
   cpRender();
-  kickLogo();
 }
 function cpCloseStep(now) { cp.open = false; cp.done++; cp.lastStepMs = Math.max(300, now - cp.stepT); }
 function cpMessage(msg) {
@@ -2449,7 +2445,6 @@ function cpRender() {
   setStatus('busy', `Compiling… ${p}%`);
   $('progressBar').style.width = `${p}%`;
   $('compileBtn').textContent = `Compiling ${p}%`;
-  kickLogo();
 }
 function cpStop() {
   if (!cp.active) return;
@@ -2459,7 +2454,6 @@ function cpStop() {
   cp.active = false;
   $('progressBar').style.width = '100%';
   $('compileBtn').textContent = 'Compile';
-  kickLogo()
 }
 
 /* ============================== compile ============================== */
@@ -3267,22 +3261,17 @@ $('optAutoLog').addEventListener('change', () => { try { localStorage.setItem('l
       ctx.fillText(`${Math.round(pct)}%`, cx, cy + 1); ctx.globalAlpha = 1;
     }
   }
-  // Draw once and stop. Only resume while compiling, or for 0.7s after a compile ends.
-let last = performance.now(), shown = 0, hold = 0, was = false, loopRaf = 0;
-function loop(now) {
-  loopRaf = 0;
-  const dt = Math.min(0.05, (now - last) / 1000); last = now;
-  const act = !!cp.active;
-  if (act) { shown = cl(+cp.pct || 0, 0, 100); was = true; hold = 0; }
-  else if (was) { was = false; shown = 100; hold = now + 700; }
-  const compiling = act || now < hold;
-  logos.forEach((L) => { if (L.cv.offsetParent) draw(L, dt, compiling, shown); });
-  if (compiling) loopRaf = requestAnimationFrame(loop);
-}
-function kickLogo() { if (!loopRaf) { last = performance.now(); loopRaf = requestAnimationFrame(loop); } }
-// draw the static frame once, then only while compiling
-logos.forEach((L) => draw(L, 0.016, false, 0));
-// call kickLogo() from cpStart() and cpRender() so the spin only runs during compiles
+  let last = performance.now(), shown = 0, hold = 0, was = false;
+  function loop(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const act = !!cp.active;
+    if (act) { shown = cl(+cp.pct || 0, 0, 100); was = true; hold = 0; }
+    else if (was) { was = false; shown = 100; hold = now + 700; }
+    const compiling = act || now < hold;
+    if (!document.hidden) logos.forEach((L) => { if (L.cv.offsetParent) draw(L, dt, compiling, shown); });
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
 })();
 
 /* ---- header menus and clickable status ---- */
